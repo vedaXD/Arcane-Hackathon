@@ -11,10 +11,22 @@ class RideMateSearchScreen extends StatefulWidget {
 class _RideMateSearchScreenState extends State<RideMateSearchScreen>
     with TickerProviderStateMixin {
   String? _selectedMode;
+  String? _selectedPickup;
+  String? _selectedDropoff;
+  bool _scheduleForLater = false;
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = const TimeOfDay(hour: 9, minute: 0);
   late AnimationController _radialController;
   late AnimationController _pulseController;
   bool _isSearching = false;
   List<Map<String, dynamic>> _foundRidemates = [];
+  
+  // VESIT Organization Locations
+  final List<String> _vesitLocations = [
+    'College Campus 2',
+    'Chembur Railway Station',
+    'Kurla Railway Station',
+  ];
 
   @override
   void initState() {
@@ -37,6 +49,16 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
   }
 
   void _startSearch(String mode) {
+    if (_selectedPickup == null || _selectedDropoff == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select pickup and drop-off locations'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
     setState(() {
       _selectedMode = mode;
       _isSearching = true;
@@ -47,7 +69,129 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
     _radialController.repeat();
     _pulseController.repeat(reverse: true);
 
-    // Simulate finding ridemates
+    if (mode == 'auto') {
+      // AUTO-RICKSHAW POOLING: Match with 3 people going to SAME destination
+      // Backend matchmaking: same gender (priority) + exact same route
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          setState(() {
+            _foundRidemates.add({
+              'name': 'Arjun K.',
+              'rating': 4.8,
+              'distance': '500m away',
+              'avatar': 'A',
+              'gender': 'Male',
+              'location': '$_selectedPickup → $_selectedDropoff',
+            });
+          });
+        }
+      });
+
+      Future.delayed(const Duration(milliseconds: 3000), () {
+        if (mounted) {
+          setState(() {
+            _foundRidemates.add({
+              'name': 'Priya S.',
+              'rating': 4.9,
+              'distance': '1.2km away',
+              'avatar': 'P',
+              'gender': 'Female',
+              'location': '$_selectedPickup → $_selectedDropoff',
+            });
+          });
+        }
+      });
+
+      Future.delayed(const Duration(milliseconds: 5000), () {
+        if (mounted) {
+          setState(() {
+            _foundRidemates.add({
+              'name': 'Rahul M.',
+              'rating': 4.7,
+              'distance': '800m away',
+              'avatar': 'R',
+              'gender': 'Male',
+              'location': '$_selectedPickup → $_selectedDropoff',
+            });
+          });
+          _radialController.stop();
+          _pulseController.stop();
+          _isSearching = false;
+          
+          // Show chat room option for AUTO pooling
+          _showChatRoomDialog();
+        }
+      });
+    } else {
+      // CARPOOLING: Match with people who are BETWEEN start and destination path
+      // Backend matchmaking: same gender (priority) + people along the route
+      Future.delayed(const Duration(milliseconds: 1500), () {
+        if (mounted) {
+          setState(() {
+            _foundRidemates.add({
+              'name': 'Neha D.',
+              'rating': 4.9,
+              'distance': '300m from pickup',
+              'avatar': 'N',
+              'gender': 'Female',
+              'location': 'Near $_selectedPickup',
+              'pickupPoint': 'Waiting near $_selectedPickup',
+            });
+          });
+        }
+      });
+
+      Future.delayed(const Duration(milliseconds: 3000), () {
+        if (mounted) {
+          setState(() {
+            _foundRidemates.add({
+              'name': 'Vikram S.',
+              'rating': 4.8,
+              'distance': 'Along route',
+              'avatar': 'V',
+              'gender': 'Male',
+              'location': 'Midway point',
+              'pickupPoint': 'On path between locations',
+            });
+          });
+        }
+      });
+
+      Future.delayed(const Duration(milliseconds: 5000), () {
+        if (mounted) {
+          setState(() {
+            _foundRidemates.add({
+              'name': 'Anjali P.',
+              'rating': 4.7,
+              'distance': '600m from route',
+              'avatar': 'A',
+              'gender': 'Female',
+              'location': 'Near $_selectedDropoff',
+              'pickupPoint': 'Close to destination',
+            });
+          });
+          _radialController.stop();
+          _pulseController.stop();
+          _isSearching = false;
+          
+          // Show chat room option for carpooling too
+          _showChatRoomDialog();
+        }
+      });
+    }
+  }
+            'gender': 'Male',
+          });
+        });
+        _radialController.stop();
+        _pulseController.stop();
+        _isSearching = false;
+        
+        // Show chat room option for AUTO pooling
+        _showChatRoomDialog();
+      }
+    });
+  }
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
@@ -216,6 +360,174 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
             ),
           ),
           const SizedBox(height: 40),
+
+          // Location Selection Card
+          FadeInDown(
+            delay: const Duration(milliseconds: 150),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Where are you going?',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: _selectedPickup,
+                    decoration: InputDecoration(
+                      labelText: 'Pickup Location',
+                      prefixIcon: const Icon(Icons.my_location, color: Colors.green),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    items: _vesitLocations.map((location) {
+                      return DropdownMenuItem(
+                        value: location,
+                        child: Text(location),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() => _selectedPickup = value);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: _selectedDropoff,
+                    decoration: InputDecoration(
+                      labelText: 'Drop-off Location',
+                      prefixIcon: const Icon(Icons.location_on, color: Colors.orange),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    items: _vesitLocations.map((location) {
+                      return DropdownMenuItem(
+                        value: location,
+                        child: Text(location),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() => _selectedDropoff = value);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Schedule Time Option Card
+          FadeInDown(
+            delay: const Duration(milliseconds: 200),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.access_time, color: Colors.orange.shade700, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _scheduleForLater ? 'Scheduled' : 'Now (default)',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  Switch(
+                    value: _scheduleForLater,
+                    onChanged: (value) async {
+                      if (value) {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedDate,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 30)),
+                        );
+                        if (date != null) {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: _selectedTime,
+                          );
+                          if (time != null) {
+                            setState(() {
+                              _scheduleForLater = true;
+                              _selectedDate = date;
+                              _selectedTime = time;
+                            });
+                          }
+                        }
+                      } else {
+                        setState(() => _scheduleForLater = false);
+                      }
+                    },
+                    activeColor: Colors.orange.shade700,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+
+          // Mode Selection Title
+          FadeInDown(
+            delay: const Duration(milliseconds: 250),
+            child: const Text(
+              'Choose Your Vibe',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          FadeInDown(
+            delay: const Duration(milliseconds: 300),
+            child: Text(
+              'Pick how you wanna roll today',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
 
           // Carpooling Option
           FadeInLeft(
