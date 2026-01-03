@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_background.dart';
 import '../../services/auth_service.dart';
@@ -182,9 +183,8 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Payments',
               color: AppTheme.success,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PaymentsScreen()),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Payments feature coming soon!')),
                 );
               },
             ),
@@ -310,7 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const SearchRidematesScreen()),
+                MaterialPageRoute(builder: (context) => const SearchRidesScreen()),
               );
             },
           ),
@@ -323,10 +323,16 @@ class _HomeScreenState extends State<HomeScreen> {
               colors: [AppTheme.info, AppTheme.info.withOpacity(0.7)],
             ),
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const OfferRideScreen()),
-              );
+              if (_isDriver) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CreateTripScreen()),
+                );
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Only drivers can offer rides')),
+                );
+              }
             },
           ),
         ],
@@ -405,6 +411,68 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _quickAccessItem({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 100,
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FaIcon(
+              icon,
+              color: color,
+              size: 24,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.darkGray,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFAB() {
+    return FloatingActionButton(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateTripScreen()),
+        );
+      },
+      backgroundColor: AppTheme.primaryOrange,
+      child: const Icon(Icons.add, color: Colors.white, size: 32),
+    );
+  }
+
   Widget _buildBottomNavBar() {
     return BottomNavigationBar(
       currentIndex: _selectedIndex,
@@ -413,7 +481,7 @@ class _HomeScreenState extends State<HomeScreen> {
         if (index == 1) {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const MyCarpoolsScreen()),
+            MaterialPageRoute(builder: (context) => const MyTripsScreen()),
           );
         } else if (index == 2) {
           Navigator.push(

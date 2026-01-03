@@ -18,6 +18,7 @@ class AuthService {
     required String firstName,
     required String lastName,
     required String role,
+    required String gender,
     String? phoneNumber,
   }) async {
     try {
@@ -32,6 +33,7 @@ class AuthService {
           'first_name': firstName,
           'last_name': lastName,
           'role': role,
+          'gender': gender,
           if (phoneNumber != null) 'phone_number': phoneNumber,
         }),
       );

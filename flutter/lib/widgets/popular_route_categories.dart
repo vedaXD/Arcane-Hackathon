@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../data/popular_routes.dart';
 
 class PopularRouteCategories extends StatelessWidget {
   final Function(String) onCategorySelect;
