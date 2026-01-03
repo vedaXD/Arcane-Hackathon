@@ -34,6 +34,16 @@ class TripViewSet(viewsets.ModelViewSet):
         
         return queryset.select_related('driver', 'vehicle').order_by('-created_at')
     
+    def create(self, request, *args, **kwargs):
+        """Override create to return full TripSerializer response"""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        trip = serializer.save()
+        
+        # Return full trip details using TripSerializer
+        response_serializer = TripSerializer(trip)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+    
     @action(detail=False, methods=['post'])
     def search(self, request):
         """

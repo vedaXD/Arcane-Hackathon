@@ -208,3 +208,7 @@ class VehicleViewSet(viewsets.ModelViewSet):
         if self.request.user.role == 'driver':
             return self.queryset.filter(driver=self.request.user)
         return self.queryset
+    
+    def perform_create(self, serializer):
+        """Auto-assign driver when creating vehicle"""
+        serializer.save(driver=self.request.user)

@@ -28,41 +28,19 @@ class SustainabilityMetricsViewSet(viewsets.ReadOnlyModelViewSet):
         """
         user = request.user
         
-        # Get date range (default: last 30 days)
-        days = int(request.query_params.get('days', 30))
-        start_date = datetime.now() - timedelta(days=days)
-        
-        # Get metrics for the period
-        metrics = SustainabilityMetrics.objects.filter(
+        # Get or create user's sustainability metrics
+        metrics, created = SustainabilityMetrics.objects.get_or_create(
             user=user,
-            created_at__gte=start_date
+            defaults={
+                'total_rides': user.total_rides,
+                'total_distance': 0,
+                'total_co2_saved': user.total_co2_saved,
+                'trees_equivalent': 0
+            }
         )
         
-        # Calculate aggregated statistics
-        total_metrics = metrics.aggregate(
-            total_co2_saved=Sum('co2_saved_kg'),
-            total_distance=Sum('distance_km'),
-            total_fuel_saved=Sum('fuel_saved_liters'),
-            total_rides=Count('id'),
-            avg_co2_per_ride=Avg('co2_saved_kg')
-        )
-        
-        # Get all-time statistics
-        all_time_metrics = SustainabilityMetrics.objects.filter(user=user).aggregate(
-            all_time_co2=Sum('co2_saved_kg'),
-            all_time_rides=Count('id'),
-            all_time_fuel=Sum('fuel_saved_liters')
-        )
-        
-        # Calculate trees equivalent
-        trees_equivalent = (total_metrics['total_co2_saved'] or 0) / 21.77
-        all_time_trees = (all_time_metrics['all_time_co2'] or 0) / 21.77
-        
-        # Get recent metrics (last 7 entries)
-        recent_metrics = SustainabilityMetricsSerializer(
-            metrics.order_by('-created_at')[:7],
-            many=True
-        ).data
+        if created:
+            metrics.calculate_trees_equivalent()
         
         # Get organization leaderboard
         org_leaderboard = []
@@ -76,29 +54,29 @@ class SustainabilityMetricsViewSet(viewsets.ReadOnlyModelViewSet):
                 'user_id': u.id,
                 'username': u.username,
                 'full_name': u.get_full_name(),
-                'total_co2_saved': float(u.total_co2_saved),
-                'total_rides': u.total_rides,
+                'total_co2_saved': float(u.total_co2_saved or 0),
+                'total_rides': u.total_rides or 0,
                 'is_current_user': u.id == user.id
             } for idx, u in enumerate(top_users)]
         
         return Response({
             'period_stats': {
-                'days': days,
-                'total_co2_saved_kg': float(total_metrics['total_co2_saved'] or 0),
-                'total_distance_km': float(total_metrics['total_distance'] or 0),
-                'total_fuel_saved_liters': float(total_metrics['total_fuel_saved'] or 0),
-                'total_rides': total_metrics['total_rides'],
-                'avg_co2_per_ride': float(total_metrics['avg_co2_per_ride'] or 0),
-                'trees_equivalent': round(trees_equivalent, 2)
+                'days': 30,  # All time for now
+                'total_co2_saved_kg': float(metrics.total_co2_saved),
+                'total_distance_km': float(metrics.total_distance),
+                'total_fuel_saved_liters': 0,  # Not tracked yet
+                'total_rides': metrics.total_rides,
+                'avg_co2_per_ride': float(metrics.total_co2_saved / max(metrics.total_rides, 1)),
+                'trees_equivalent': round(float(metrics.trees_equivalent), 2)
             },
             'all_time_stats': {
-                'total_co2_saved_kg': float(all_time_metrics['all_time_co2'] or 0),
-                'total_rides': all_time_metrics['all_time_rides'],
-                'total_fuel_saved_liters': float(all_time_metrics['all_time_fuel'] or 0),
-                'trees_equivalent': round(all_time_trees, 2),
+                'total_co2_saved_kg': float(metrics.total_co2_saved),
+                'total_rides': metrics.total_rides,
+                'total_fuel_saved_liters': 0,
+                'trees_equivalent': round(float(metrics.trees_equivalent), 2),
                 'reward_points': user.reward_points
             },
-            'recent_metrics': recent_metrics,
+            'recent_metrics': [],  # No historical tracking yet
             'organization_leaderboard': org_leaderboard
         })
     

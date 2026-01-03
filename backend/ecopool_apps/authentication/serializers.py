@@ -65,4 +65,5 @@ class VehicleSerializer(serializers.ModelSerializer):
             'registration_number', 'fuel_type', 'capacity', 'color',
             'year', 'is_verified', 'created_at'
         ]
+        read_only_fields = ['id', 'driver', 'driver_name', 'is_verified', 'created_at']
 

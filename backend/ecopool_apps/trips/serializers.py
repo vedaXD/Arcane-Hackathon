@@ -27,9 +27,18 @@ class TripCreateSerializer(serializers.ModelSerializer):
             'end_location', 'end_latitude', 'end_longitude',
             'departure_time', 'available_seats', 'gender_preference', 'price_per_seat'
         ]
+        extra_kwargs = {
+            'vehicle': {'required': False, 'allow_null': True}
+        }
 
     def create(self, validated_data):
+        from ecopool_apps.authentication.models import Vehicle
         validated_data['driver'] = self.context['request'].user
+        # If no vehicle provided, try to use user's first vehicle
+        if not validated_data.get('vehicle'):
+            first_vehicle = Vehicle.objects.filter(owner=self.context['request'].user).first()
+            if first_vehicle:
+                validated_data['vehicle'] = first_vehicle
         return super().create(validated_data)
 
 
