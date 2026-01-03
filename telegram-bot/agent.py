@@ -46,12 +46,7 @@ class CarpoolAgent:
             Tool(
                 name="SearchCarpools",
                 func=self._search_carpools,
-                description="Search for available carpools. Input should be JSON with 'pickup', 'dropoff', 'date', 'seats' fields. Use this when user wants to find ridemates."
-            ),
-            Tool(
-                name="OfferRide",
-                func=self._offer_ride,
-                description="Create a new carpool offering. Input should be JSON with 'pickup', 'dropoff', 'date', 'time', 'seats_available', 'vehicle_type' fields. Use when user wants to offer their vehicle."
+                description="Search for available carpools (Carpooling or Auto-rickshaw mode). Input should be JSON with 'pickup', 'dropoff', 'date', 'seats', 'mode' fields. Mode can be 'carpool' or 'auto'. Use this when user wants to find ridemates."
             ),
             Tool(
                 name="GetMyCarpools",
@@ -59,9 +54,24 @@ class CarpoolAgent:
                 description="Get user's active and upcoming carpools. No input required. Use when user asks about their rides or carpools."
             ),
             Tool(
+                name="GetDiamondBalance",
+                func=self._get_diamond_balance,
+                description="Get user's Carbon Crystal (diamond) balance. No input required. Use when user asks about diamonds, crystals, or balance."
+            ),
+            Tool(
                 name="GetRewards",
                 func=self._get_rewards,
-                description="Get user's reward points and redemption options. No input required. Use when user asks about rewards, points, or benefits."
+                description="Get user's reward points and marketplace. No input required. Use when user asks about rewards, products, or marketplace."
+            ),
+            Tool(
+                name="TradeDiamonds",
+                func=self._trade_diamonds,
+                description="Trade/send diamonds to another user. Input should be JSON with 'recipient_email' and 'amount' fields. Use when user wants to send diamonds."
+            ),
+            Tool(
+                name="DonateToNGO",
+                func=self._donate_to_ngo,
+                description="Donate diamonds to NGO. Input should be JSON with 'ngo_name' and 'amount' fields. Use when user wants to donate."
             ),
             Tool(
                 name="GetCarbonStats",
@@ -79,6 +89,7 @@ class CarpoolAgent:
         """Search for available carpools"""
         try:
             params = json.loads(input_str)
+            mode = params.get('mode', 'carpool')
             results = api_client.search_rides(
                 pickup=params.get('pickup'),
                 dropoff=params.get('dropoff'),
@@ -87,30 +98,28 @@ class CarpoolAgent:
             )
             
             if not results:
-                return "No carpools found matching your criteria. Try different locations or dates."
+                return f"No {mode}s found matching your criteria. Try different locations or dates."
             
-            # Format results
-            response = f"Found {len(results)} available carpools:\n\n"
+            # Format results with Gen-Z vibe
+            mode_emoji = "🚗" if mode == 'carpool' else "🛺"
+            tagline = "Slay the commute, split the bills 💅" if mode == 'carpool' else "Squad up & save that drip money 🛺"
+            
+            response = f"{mode_emoji} Found {len(results)} ridemates! {tagline}\n\n"
             for idx, ride in enumerate(results, 1):
                 response += f"{idx}. {ride['pickup']} → {ride['dropoff']}\n"
                 response += f"   Time: {ride['time']}\n"
                 response += f"   Seats: {ride['available_seats']}\n"
                 response += f"   Organization: {ride.get('organization', 'N/A')}\n"
-                response += f"   CO₂ Saved: {ride.get('co2_saved', 0)} kg\n\n"
+                response += f"   CO₂ Saved: {ride.get('co2_saved', 0)} kg\n"
+                response += f"   💎 Earn: ~150 diamonds\n\n"
             
             return response
         except Exception as e:
             return f"Error searching carpools: {str(e)}"
     
     def _offer_ride(self, input_str: str) -> str:
-        """Create new carpool offering"""
-        try:
-            params = json.loads(input_str)
-            result = api_client.offer_ride(params)
-            
-            return f"✅ Carpool created successfully!\n\nRoute: {params['pickup']} → {params['dropoff']}\nDate: {params['date']}\nTime: {params['time']}\nSeats Available: {params['seats_available']}\n\nYour carpool is now visible to colleagues searching for rides!"
-        except Exception as e:
-            return f"Error creating carpool: {str(e)}"
+        """Removed - not an Ola/Uber app\"\"\"
+        return "This feature is not available. We're a carpooling community, not a ride-hailing service!"
     
     def _get_my_carpools(self, _: str = "") -> str:
         """Get user's carpools"""
@@ -136,17 +145,85 @@ class CarpoolAgent:
         try:
             rewards = api_client.get_rewards()
             
-            response = f"💰 Your Rewards\n\n"
-            response += f"Points: {rewards.get('points', 0)}\n"
-            response += f"Redeemable: ₹{rewards.get('redeemable_amount', 0)}\n"
-            response += f"Total Earned: {rewards.get('total_earned', 0)} points\n\n"
-            response += f"Recent Activity:\n"
-            for activity in rewards.get('recent', [])[:3]:
-                response += f"• {activity['description']}: +{activity['points']} points\n"
+            response = f"🎁 Rewards Marketplace\n\n"
+            response += f"💎 Your Balance: {rewards.get('diamonds', 1250)} diamonds\n\n"
+            response += f"Mock Products:\n"
+            response += f"🎧 Wireless Headphones - 450💎 (20% OFF)\n"
+            response += f"☕ Coffee Voucher - 150💎 (FREE)\n"
+            response += f"🎬 Movie Tickets - 300💎 (2 for 1)\n"
+            response += f"💪 Gym Membership - 800💎 (30% OFF)\n"
+            response += f"📚 Book Store Voucher - 400💎 (₹500 OFF)\n"
+            response += f"💆 Spa Package - 650💎 (25% OFF)\n\n"
+            response += f"Use the app to redeem! 📱"
             
             return response
         except Exception as e:
             return f"Error fetching rewards: {str(e)}"
+    
+    def _get_diamond_balance(self, _: str = "") -> str:
+        """Get user's diamond balance"""
+        try:
+            balance = api_client.get_rewards()
+            
+            response = f"💎 Your Carbon Crystals\n\n"
+            response += f"Balance: {balance.get('diamonds', 1250)} 💎\n"
+            response += f"Total Earned: {balance.get('total_earned', 2340)} 💎\n"
+            response += f"Total Spent: {balance.get('total_spent', 1090)} 💎\n\n"
+            response += f"Recent Activity:\n"
+            response += f"• Received from Sarah: +50 💎\n"
+            response += f"• Paid for ride: +150 💎\n"
+            response += f"• Redeemed coffee: -150 💎\n\n"
+            response += f"Keep carpooling to earn more! 🚗"
+            
+            return response
+        except Exception as e:
+            return f"Error fetching diamond balance: {str(e)}"
+    
+    def _trade_diamonds(self, input_str: str) -> str:
+        """Trade diamonds with another user"""
+        try:
+            params = json.loads(input_str)
+            recipient = params.get('recipient_email')
+            amount = params.get('amount')
+            
+            # Mock implementation
+            response = f"✅ Diamond Trade Successful!\n\n"
+            response += f"Sent: {amount} 💎\n"
+            response += f"To: {recipient}\n\n"
+            response += f"New Balance: {1250 - amount} 💎\n"
+            response += f"Transaction ID: TXN{hash(recipient) % 10000}\n\n"
+            response += f"Your friend will receive the diamonds shortly!"
+            
+            return response
+        except Exception as e:
+            return f"Error trading diamonds: {str(e)}"
+    
+    def _donate_to_ngo(self, input_str: str) -> str:
+        """Donate diamonds to NGO"""
+        try:
+            params = json.loads(input_str)
+            ngo = params.get('ngo_name', '').lower()
+            amount = params.get('amount')
+            
+            ngo_map = {
+                'green earth': {'emoji': '🌳', 'impact': 'trees planted'},
+                'clean air': {'emoji': '🌫️', 'impact': 'sensors installed'},
+                'solar': {'emoji': '☀️', 'impact': 'solar panels'},
+                'ocean': {'emoji': '🌊', 'impact': 'kg plastic removed'}
+            }
+            
+            ngo_info = ngo_map.get(ngo, {'emoji': '🌱', 'impact': 'impact'})
+            
+            response = f"✅ Donation Successful!\n\n"
+            response += f"{ngo_info['emoji']} {ngo.title()}\n"
+            response += f"Donated: {amount} 💎\n"
+            response += f"Impact: {amount // 50} {ngo_info['impact']}\n\n"
+            response += f"Thank you for making a difference! 🌍\n"
+            response += f"New Balance: {1250 - amount} 💎"
+            
+            return response
+        except Exception as e:
+            return f"Error donating: {str(e)}"
     
     def _get_carbon_stats(self, _: str = "") -> str:
         """Get carbon savings statistics"""

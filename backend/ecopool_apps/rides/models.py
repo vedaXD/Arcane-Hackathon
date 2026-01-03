@@ -67,31 +67,66 @@ class SOSAlert(models.Model):
 
 
 class ChatMessage(models.Model):
-    """In-app chat between driver and passengers"""
+    """Temporary 24-hour chat room for ride-mates (no phone number sharing)"""
     ride = models.ForeignKey(Ride, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+    expires_at = models.DateTimeField(null=True, blank=True, help_text="Messages auto-delete after 24 hours")
 
     class Meta:
         ordering = ['timestamp']
 
     def __str__(self):
         return f"Message from {self.sender.username} in Ride {self.ride.id}"
+    
+    def is_expired(self):
+        """Check if message has exceeded 24-hour lifetime"""
+        from django.utils import timezone
+        return timezone.now() > self.expires_at
+    
+    def save(self, *args, **kwargs):
+        """Auto-set expiry to 24 hours from creation"""
+        if not self.expires_at:
+            from django.utils import timezone
+            from datetime import timedelta
+            self.expires_at = timezone.now() + timedelta(hours=24)
+        super().save(*args, **kwargs)
 
 
 class Feedback(models.Model):
-    """Post-ride feedback and ratings"""
+    """Post-ride feedback and ratings with detailed criteria"""
     ride = models.ForeignKey(Ride, on_delete=models.CASCADE, related_name='feedbacks')
     from_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedback_given')
     to_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='feedback_received')
+    
+    # Overall rating
     rating = models.IntegerField()  # 1-5 stars
+    
+    # Detailed ratings for matchmaking improvement
+    punctuality_rating = models.IntegerField(default=5, help_text="1-5: Was the person on time?")
+    behavior_rating = models.IntegerField(default=5, help_text="1-5: How was their behavior?")
+    cleanliness_rating = models.IntegerField(default=5, help_text="1-5: How clean/hygienic?")
+    communication_rating = models.IntegerField(default=5, help_text="1-5: Communication quality")
+    
+    # Preferences for future matchmaking
+    would_ride_again = models.BooleanField(default=True)
+    
     comment = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ['ride', 'from_user', 'to_user']
+
     def __str__(self):
         return f"Feedback from {self.from_user.username} to {self.to_user.username}"
+    
+    def get_average_detailed_rating(self):
+        """Calculate average of all detailed ratings"""
+        return (self.punctuality_rating + self.behavior_rating + 
+                self.cleanliness_rating + self.communication_rating) / 4
+
 
 
 class Complaint(models.Model):
