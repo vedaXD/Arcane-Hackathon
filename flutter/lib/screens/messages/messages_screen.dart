@@ -9,25 +9,28 @@ class MessagesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final messages = [
       {
-        'name': 'Amit Sharma',
-        'message': 'See you at the pickup point at 8:30 AM',
+        'name': 'Chembur → VESIT Carpool',
+        'message': 'Amit: See you at the pickup point at 8:30 AM',
         'time': '2m ago',
         'unread': 2,
-        'avatar': 'A',
+        'avatar': 'C',
+        'members': 3,
       },
       {
-        'name': 'Priya Patel',
-        'message': 'Thank you for the comfortable ride!',
+        'name': 'Dadar → BKC Carpool',
+        'message': 'You: I\'ll be 5 minutes early tomorrow',
         'time': '1h ago',
         'unread': 0,
-        'avatar': 'P',
+        'avatar': 'D',
+        'members': 2,
       },
       {
-        'name': 'Rohit Kumar',
-        'message': 'Can we leave 10 minutes early?',
+        'name': 'Kurla → TCS Carpool',
+        'message': 'Thanks everyone for the great ride!',
         'time': '3h ago',
-        'unread': 1,
-        'avatar': 'R',
+        'unread': 0,
+        'avatar': 'K',
+        'members': 4,
       },
     ];
 
@@ -98,21 +101,37 @@ class MessagesScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        message['name']!,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: message['unread'] > 0
-                              ? FontWeight.bold
-                              : FontWeight.w500,
+                      Expanded(
+                        child: Text(
+                          message['name']!,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: message['unread'] > 0
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                          ),
                         ),
                       ),
-                      Text(
-                        message['time']!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                      Row(
+                        children: [
+                          Icon(Icons.people, size: 12, color: Colors.grey[600]),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${message['members']}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            message['time']!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
