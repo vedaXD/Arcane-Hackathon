@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:routeopt/theme/app_theme.dart';
 import 'package:routeopt/screens/home/home_screen.dart';
 import 'package:routeopt/screens/auth/register_screen.dart';
+import 'package:routeopt/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,8 +13,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = AuthService();
   bool _obscurePassword = true;
   bool _isLoading = false;
   late AnimationController _fadeController;
@@ -35,40 +37,59 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     _fadeController.dispose();
     super.dispose();
   }
 
-  void _handleLogin() {
+  Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       
-      // Simulate API call
-      Future.delayed(const Duration(seconds: 1), () {
+      try {
+        final result = await _authService.login(
+          username: _usernameController.text.trim(),
+          password: _passwordController.text,
+        );
+
         if (mounted) {
           setState(() => _isLoading = false);
-          // Navigate to home page
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
+
+          if (result['success']) {
+            // Navigate to home page
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          } else {
+            // Show error message
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(result['message'] ?? 'Login failed'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('An error occurred: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
-      });
+      }
     }
   }
 
-  String? _validateEmail(String? value) {
+  String? _validateUsername(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter your email';
+      return 'Please enter your username';
     }
-    
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    if (!emailRegex.hasMatch(value)) {
-      return 'Please enter a valid email';
-    }
-
     return null;
   }
 
@@ -192,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Email Address',
+          'Username',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
@@ -201,12 +222,12 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: _emailController,
-          keyboardType: TextInputType.emailAddress,
-          validator: _validateEmail,
+          controller: _usernameController,
+          keyboardType: TextInputType.text,
+          validator: _validateUsername,
           decoration: InputDecoration(
-            hintText: 'your.email@example.com',
-            prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primaryOrange),
+            hintText: 'Enter your username',
+            prefixIcon: Icon(Icons.person_outline, color: AppTheme.primaryOrange),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(

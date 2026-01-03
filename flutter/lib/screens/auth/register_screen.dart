@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:routeopt/theme/app_theme.dart';
-import 'package:routeopt/screens/auth/face_verification_screen.dart';
+import 'package:routeopt/services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -11,15 +11,18 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _authService = AuthService();
+  String _selectedRole = 'passenger';
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
-  bool _faceVerified = false;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
 
@@ -39,7 +42,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _usernameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
@@ -48,134 +53,102 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     super.dispose();
   }
 
-  String _getOrganizationFromEmail(String email) {
-    final domain = email.split('@').last.toLowerCase();
-    
-    // Map common domains to organizations
-    final organizationMap = {
-      'vesit.edu.in': 'VESIT College',
-      'iitb.ac.in': 'IIT Bombay',
-      'tcs.com': 'Tata Consultancy Services',
-      'ril.com': 'Reliance Industries',
-      'infosys.com': 'Infosys',
-      'wipro.com': 'Wipro',
-      'accenture.com': 'Accenture',
-      'gmail.com': 'Individual',
-      'yahoo.com': 'Individual',
-      'outlook.com': 'Individual',
-    };
-    
-    return organizationMap[domain] ?? 'Organization - $domain';
-  }
-
-  void _handleRegister() async {
+  Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
-      if (!_faceVerified) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please complete face verification first'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
-      }
-
       setState(() => _isLoading = true);
       
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        setState(() => _isLoading = false);
-        
-        final organization = _getOrganizationFromEmail(_emailController.text);
-        
-        // Show success dialog
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.green, size: 28),
-                SizedBox(width: 12),
-                Text('Registration Successful!'),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Welcome to RouteOpt!'),
-                SizedBox(height: 12),
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryBeige,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Your Organization:',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        organization,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryOrange,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 12),
-                Text(
-                  'You can now login with your credentials.',
-                  style: TextStyle(color: Colors.grey[600]),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // Close dialog
-                  Navigator.pop(context); // Go back to login
-                },
-                child: Text('Go to Login'),
-              ),
-            ],
-          ),
+      try {
+        final result = await _authService.register(
+          username: _usernameController.text.trim(),
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+          passwordConfirm: _confirmPasswordController.text,
+          firstName: _firstNameController.text.trim(),
+          lastName: _lastNameController.text.trim(),
+          role: _selectedRole,
+          phoneNumber: _phoneController.text.trim().isNotEmpty 
+              ? _phoneController.text.trim() 
+              : null,
         );
-      }
-    }
-  }
 
-  void _handleFaceVerification() async {
-    final result = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const FaceVerificationScreen(isRegistration: true),
-      ),
-    );
-    
-    if (result == true && mounted) {
-      setState(() {
-        _faceVerified = true;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Face verification completed successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+        if (mounted) {
+          setState(() => _isLoading = false);
+
+          if (result['success']) {
+            // Show success dialog
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                title: const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green, size: 28),
+                    SizedBox(width: 12),
+                    Text('Registration Successful!'),
+                  ],
+                ),
+                content: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Welcome to RouteOpt!'),
+                    SizedBox(height: 12),
+                    Text(
+                      'You can now login with your credentials.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Close dialog
+                      Navigator.pop(context); // Go back to login
+                    },
+                    child: const Text('Go to Login'),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            // Show error message with details
+            String errorMsg = result['message'] ?? 'Registration failed';
+            
+            // Show detailed error dialog
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Row(
+                  children: [
+                    Icon(Icons.error, color: Colors.red, size: 28),
+                    SizedBox(width: 12),
+                    Text('Registration Failed'),
+                  ],
+                ),
+                content: SingleChildScrollView(
+                  child: Text(errorMsg),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('An error occurred: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 
@@ -239,13 +212,35 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   
                   const SizedBox(height: 40),
                   
-                  // Name Field
+                  // Username Field
                   _buildTextField(
-                    controller: _nameController,
-                    label: 'Full Name',
-                    hint: 'Enter your full name',
+                    controller: _usernameController,
+                    label: 'Username',
+                    hint: 'Choose a username',
                     icon: Icons.person_outline,
-                    validator: (value) => value?.isEmpty ?? true ? 'Please enter your name' : null,
+                    validator: (value) => value?.isEmpty ?? true ? 'Please enter a username' : null,
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // First Name Field
+                  _buildTextField(
+                    controller: _firstNameController,
+                    label: 'First Name',
+                    hint: 'Enter your first name',
+                    icon: Icons.person,
+                    validator: (value) => value?.isEmpty ?? true ? 'Please enter your first name' : null,
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Last Name Field
+                  _buildTextField(
+                    controller: _lastNameController,
+                    label: 'Last Name',
+                    hint: 'Enter your last name',
+                    icon: Icons.person,
+                    validator: (value) => value?.isEmpty ?? true ? 'Please enter your last name' : null,
                   ),
                   
                   const SizedBox(height: 16),
@@ -262,15 +257,20 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   
                   const SizedBox(height: 16),
                   
-                  // Phone Field
+                  // Phone Field (Optional)
                   _buildTextField(
                     controller: _phoneController,
-                    label: 'Phone Number',
+                    label: 'Phone Number (Optional)',
                     hint: '+91 XXXXX XXXXX',
                     icon: Icons.phone_outlined,
                     keyboardType: TextInputType.phone,
-                    validator: (value) => value?.isEmpty ?? true ? 'Please enter your phone number' : null,
+                    validator: null,
                   ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Role Selection
+                  _buildRoleSelector(),
                   
                   const SizedBox(height: 16),
                   
@@ -295,11 +295,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                     onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                     validator: _validateConfirmPassword,
                   ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Face Verification Button
-                  _buildFaceVerificationButton(),
                   
                   const SizedBox(height: 30),
                   
@@ -451,47 +446,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildFaceVerificationButton() {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        color: _faceVerified ? Colors.green.withOpacity(0.1) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _faceVerified ? Colors.green : AppTheme.primaryOrange,
-          width: 2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ElevatedButton.icon(
-        onPressed: _faceVerified ? null : _handleFaceVerification,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          foregroundColor: _faceVerified ? Colors.green : AppTheme.primaryOrange,
-          shadowColor: Colors.transparent,
-          disabledForegroundColor: Colors.green,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        icon: Icon(_faceVerified ? Icons.check_circle : Icons.face, size: 28),
-        label: Text(
-          _faceVerified ? 'Face Verified ✓' : 'Complete Face Verification',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildRegisterButton() {
     return Container(
       height: 56,
@@ -535,6 +489,110 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 ),
               ),
       ),
+    );
+  }
+
+  Widget _buildRoleSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'I want to register as',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey[700],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedRole = 'passenger'),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: _selectedRole == 'passenger' 
+                        ? AppTheme.primaryOrange.withOpacity(0.1)
+                        : Colors.white,
+                    border: Border.all(
+                      color: _selectedRole == 'passenger' 
+                          ? AppTheme.primaryOrange
+                          : Colors.grey[300]!,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.person,
+                        color: _selectedRole == 'passenger' 
+                            ? AppTheme.primaryOrange
+                            : Colors.grey[600],
+                        size: 32,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Passenger',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: _selectedRole == 'passenger' 
+                              ? AppTheme.primaryOrange
+                              : Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() => _selectedRole = 'driver'),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: _selectedRole == 'driver' 
+                        ? AppTheme.primaryOrange.withOpacity(0.1)
+                        : Colors.white,
+                    border: Border.all(
+                      color: _selectedRole == 'driver' 
+                          ? AppTheme.primaryOrange
+                          : Colors.grey[300]!,
+                      width: 2,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.drive_eta,
+                        color: _selectedRole == 'driver' 
+                            ? AppTheme.primaryOrange
+                            : Colors.grey[600],
+                        size: 32,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Driver',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: _selectedRole == 'driver' 
+                              ? AppTheme.primaryOrange
+                              : Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
