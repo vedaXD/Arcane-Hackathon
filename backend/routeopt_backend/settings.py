@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'ecopool_apps.rides',
     'ecopool_apps.payments',
     'ecopool_apps.sustainability',
+    'ecopool_apps.rewards.apps.RewardsConfig',
 ]
 
 MIDDLEWARE = [

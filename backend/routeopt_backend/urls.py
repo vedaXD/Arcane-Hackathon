@@ -52,6 +52,9 @@ urlpatterns = [
     # Authentication endpoints
     path('api/auth/', include('ecopool_apps.authentication.urls')),
     
+    # Rewards/Diamond Economy endpoints
+    path('api/rewards/', include('ecopool_apps.rewards.urls')),
+    
     # Main API routes
     path('api/', include(router.urls)),
 ]
