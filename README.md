@@ -10,6 +10,18 @@ A Flutter-based mobile application designed to promote sustainability by reducin
 
 ---
 
+## 👥 Team Information
+
+**Team Name:** Kapow
+
+**Domain:** Sustainability
+
+**Team Members:**
+- Veda Patki
+- Soham Patil
+
+---
+
 ## 📋 Table of Contents
 
 - [Problem Statement](#-problem-statement)
@@ -120,33 +132,58 @@ Transportation is one of the largest contributors to carbon emissions globally. 
 
 ## 🏗️ Architecture
 
-```
-┌─────────────────────────────────────────────────────┐
-│                  Mobile App (Flutter)                │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐          │
-│  │  Driver  │  │Passenger │  │  Admin   │          │
-│  │   View   │  │   View   │  │   View   │          │
-│  └──────────┘  └──────────┘  └──────────┘          │
-└─────────────────────┬───────────────────────────────┘
-                      │
-         ┌────────────┴────────────┐
-         │    API Gateway          │
-         └────────────┬────────────┘
-                      │
-    ┌─────────────────┼─────────────────┐
-    │                 │                 │
-┌───▼────┐    ┌──────▼──────┐   ┌─────▼─────┐
-│ Auth   │    │   Matching  │   │  Payment  │
-│Service │    │   Engine    │   │  Service  │
-└────────┘    └─────────────┘   └───────────┘
-    │                 │                 │
-    └─────────────────┼─────────────────┘
-                      │
-              ┌───────▼────────┐
-              │    Database    │
-              │  (PostgreSQL)  │
-              └────────────────┘
-```
+### System Architecture
+
+Our carpooling platform follows a comprehensive architecture designed for safety, sustainability, and seamless user experience:
+
+![System Architecture](assets/system-architecture.png)
+
+#### Key Components:
+
+1. **Authentication Layer**
+   - Organization-based email verification
+   - Face recognition for enhanced security
+   - Role-based access (Driver/Passenger/Admin)
+
+2. **Portfolio Setup**
+   - **Driver**: Enters car details and passenger occupancy
+   - **Passenger**: Enters trip details (location, mode of transport, preferred gender)
+
+3. **Matching Algorithm**
+   - Organization-based filtering
+   - Mode of transport filtering
+   - Gender preference check
+   - Route overlap calculation using Maps API
+   - AI-powered intelligent matching
+
+4. **Journey Phase**
+   - Live GPS tracking throughout the ride
+   - SOS button for emergencies
+   - ETA calculation through maps integration
+   - In-app chats (no phone number sharing needed)
+   - Real-time carbon savings calculation
+
+5. **After Ride**
+   - Feedback and trust scoring system
+   - Payment integration for seamless transactions
+   - CO₂-based rewards system
+   - Social media sharing of achievements
+
+6. **Dashboard Updates**
+   - Number of pools completed
+   - Total CO₂ saved
+   - Equivalent trees planted metric
+   - Rewards earned and tracking
+
+7. **Safety & Compliance**
+   - SOS alerts to organization authorities
+   - In-app complaint system
+   - Authentication verification at each stage
+
+8. **API Integration**
+   - Native integration with WhatsApp/Telegram bots for non-tech-savvy users
+   - Push notifications for ride updates
+   - Real-time messaging capabilities
 
 ---
 

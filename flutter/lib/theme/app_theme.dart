@@ -7,11 +7,11 @@ class AppTheme {
   static const Color lightBeige = Color(0xFFFFF8E7);
   static const Color darkBeige = Color(0xFFE8DCC4);
   
-  // Secondary Colors - Orange
-  static const Color primaryOrange = Color(0xFFFF8C42);
-  static const Color lightOrange = Color(0xFFFFB380);
-  static const Color darkOrange = Color(0xFFFF6B00);
-  static const Color accentOrange = Color(0xFFFF9F5A);
+  // Secondary Colors - Green
+  static const Color primaryOrange = Color(0xFF4CAF50);
+  static const Color lightOrange = Color(0xFF81C784);
+  static const Color darkOrange = Color(0xFF388E3C);
+  static const Color accentOrange = Color(0xFF66BB6A);
   
   // Neutral Colors
   static const Color darkGray = Color(0xFF2C2C2C);
