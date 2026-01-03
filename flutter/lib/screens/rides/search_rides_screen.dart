@@ -5,7 +5,6 @@ import 'package:latlong2/latlong.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/radar_search_animation.dart';
 import '../../widgets/map_widget.dart';
-import '../../data/popular_routes.dart';
 import '../../services/trip_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/trip_model.dart';
@@ -31,7 +30,6 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
   bool _showResults = false;
   List<String> _fromSuggestions = [];
   List<String> _toSuggestions = [];
-  bool _showPopularRoutes = true;
   List<Trip> _searchResults = [];
   String? _errorMessage;
   User? _currentUser;
@@ -74,13 +72,6 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (!_isSearching && !_showResults) ...[
-              // Popular Routes Section
-              if (_showPopularRoutes && _fromController.text.isEmpty && _toController.text.isEmpty)
-                FadeInDown(
-                  child: _buildPopularRoutesSection(),
-                ),
-              if (_showPopularRoutes && _fromController.text.isEmpty && _toController.text.isEmpty)
-                SizedBox(height: 24),
               FadeInDown(
                 child: _buildLocationInput(),
               ),
@@ -180,57 +171,72 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
 
     if (mounted) {
       // Create 3 mock matched ridemates
-      final mockMatches = [
+      final mockMatches = <Trip>[
         Trip(
           id: 1,
-          pickupLocation: _fromController.text,
-          dropoffLocation: _toController.text,
+          driverId: 101,
+          driverName: 'Arjun Kumar',
+          vehicleId: 201,
+          vehicleModel: 'Honda City',
+          startLocation: _fromController.text,
+          startLatitude: 19.0330,
+          startLongitude: 72.8640,
+          endLocation: _toController.text,
+          endLatitude: 19.0728,
+          endLongitude: 72.8826,
           departureTime: _scheduleForLater 
               ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
               : DateTime.now(),
           availableSeats: 2,
-          status: 'pending',
-          distance: 5.2,
-          duration: 25,
-          estimatedCost: 45.0,
-          co2Saved: 2.5,
-          driverName: 'Arjun Kumar',
-          driverRating: 4.8,
-          vehicleModel: 'Honda City',
+          genderPreference: 'any',
+          pricePerSeat: 45.0,
+          status: 'scheduled',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         Trip(
           id: 2,
-          pickupLocation: _fromController.text,
-          dropoffLocation: _toController.text,
+          driverId: 102,
+          driverName: 'Priya Sharma',
+          vehicleId: 202,
+          vehicleModel: 'Maruti Swift',
+          startLocation: _fromController.text,
+          startLatitude: 19.0330,
+          startLongitude: 72.8640,
+          endLocation: _toController.text,
+          endLatitude: 19.0728,
+          endLongitude: 72.8826,
           departureTime: _scheduleForLater 
               ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
               : DateTime.now(),
           availableSeats: 3,
-          status: 'pending',
-          distance: 5.2,
-          duration: 25,
-          estimatedCost: 40.0,
-          co2Saved: 2.3,
-          driverName: 'Priya Sharma',
-          driverRating: 4.9,
-          vehicleModel: 'Maruti Swift',
+          genderPreference: 'any',
+          pricePerSeat: 40.0,
+          status: 'scheduled',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
         Trip(
           id: 3,
-          pickupLocation: _fromController.text,
-          dropoffLocation: _toController.text,
+          driverId: 103,
+          driverName: 'Rahul Mehta',
+          vehicleId: 203,
+          vehicleModel: 'Toyota Innova',
+          startLocation: _fromController.text,
+          startLatitude: 19.0330,
+          startLongitude: 72.8640,
+          endLocation: _toController.text,
+          endLatitude: 19.0728,
+          endLongitude: 72.8826,
           departureTime: _scheduleForLater 
               ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
               : DateTime.now(),
           availableSeats: 1,
-          status: 'pending',
-          distance: 5.2,
-          duration: 25,
-          estimatedCost: 50.0,
-          co2Saved: 2.7,
-          driverName: 'Rahul Mehta',
-          driverRating: 4.7,
-          vehicleModel: 'Toyota Innova',
+          genderPreference: 'any',
+          pricePerSeat: 50.0,
+          status: 'scheduled',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         ),
       ];
 
@@ -667,7 +673,6 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
                       onChanged: (value) {
                         setState(() {
                           _fromController.text = value ?? '';
-                          _showPopularRoutes = false;
                         });
                       },
                     ),
@@ -696,67 +701,8 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
                       onChanged: (value) {
                         setState(() {
                           _toController.text = value ?? '';
-                          _showPopularRoutes = false;
                         });
                       },
-                    ),
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _toController,
-                          onChanged: (value) {
-                            setState(() {
-                              _toSuggestions = CommonPickupPoints.getSuggestions(value, limit: 5);
-                            });
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Drop-off location',
-                            hintStyle: TextStyle(fontSize: 14),
-                            prefixIcon: Icon(Icons.place, size: 20),
-                            filled: true,
-                            fillColor: AppTheme.offWhite,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: EdgeInsets.symmetric(vertical: 12),
-                          ),
-                        ),
-                        if (_toSuggestions.isNotEmpty && _toController.text.isNotEmpty)
-                          Container(
-                            margin: EdgeInsets.only(top: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: _toSuggestions.map((suggestion) {
-                                return ListTile(
-                                  dense: true,
-                                  leading: Icon(Icons.location_on, size: 18, color: Colors.grey[600]),
-                                  title: Text(
-                                    suggestion,
-                                    style: TextStyle(fontSize: 13),
-                                  ),
-                                  onTap: () {
-                                    setState(() {
-                                      _toController.text = suggestion;
-                                      _toSuggestions = [];
-                                      _showPopularRoutes = false;
-                                    });
-                                  },
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                      ],
                     ),
                   ],
                 ),
@@ -948,373 +894,6 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildPopularRoutesSection() {
-    final topRoutes = PopularRoutesData.getTopRoutes(limit: 6);
-    
-    return Container(
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.white, AppTheme.primaryBeige],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.trending_up,
-                color: AppTheme.primaryOrange,
-                size: 24,
-              ),
-              SizedBox(width: 8),
-              Text(
-                'Popular Routes',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.darkGray,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 4),
-          Text(
-            'Tap to auto-fill your journey',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-            ),
-          ),
-          SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: topRoutes.map((route) => _buildPopularRouteChip(route)).toList(),
-          ),
-          SizedBox(height: 12),
-          GestureDetector(
-            onTap: _showAllPopularRoutes,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'View All Routes',
-                  style: TextStyle(
-                    color: AppTheme.primaryOrange,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-                SizedBox(width: 4),
-                Icon(
-                  Icons.arrow_forward,
-                  color: AppTheme.primaryOrange,
-                  size: 16,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPopularRouteChip(PopularRoute route) {
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _fromController.text = route.pickupPoint;
-          _toController.text = route.dropPoint;
-          _showPopularRoutes = false;
-        });
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.primaryOrange.withOpacity(0.3)),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.primaryOrange.withOpacity(0.1),
-              blurRadius: 8,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(route.icon, size: 16, color: AppTheme.primaryOrange),
-                SizedBox(width: 6),
-                Text(
-                  route.name,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.darkGray,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.people, size: 12, color: Colors.grey[600]),
-                SizedBox(width: 4),
-                Text(
-                  '${route.avgRiders} riders',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                SizedBox(width: 8),
-                Icon(Icons.eco, size: 12, color: Colors.green),
-                SizedBox(width: 4),
-                Text(
-                  '${route.co2SavedPerRide}kg',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey[600],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showAllPopularRoutes() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.95,
-        builder: (context, scrollController) {
-          return Container(
-            decoration: BoxDecoration(
-              color: AppTheme.primaryBeige,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  margin: EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[400],
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      Icon(Icons.route, color: AppTheme.primaryOrange),
-                      SizedBox(width: 8),
-                      Text(
-                        'All Popular Routes',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    controller: scrollController,
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: PopularRoutesData.routes.length,
-                    itemBuilder: (context, index) {
-                      final route = PopularRoutesData.routes[index];
-                      return _buildRouteCard(route);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildRouteCard(PopularRoute route) {
-    return Card(
-      margin: EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 2,
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _fromController.text = route.pickupPoint;
-            _toController.text = route.dropPoint;
-            _showPopularRoutes = false;
-          });
-          Navigator.pop(context);
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryOrange.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(route.icon, color: AppTheme.primaryOrange),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          route.name,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          '${route.estimatedKm} km · ${route.estimatedMinutes} min',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 12),
-              _buildRoutePoints(route.pickupPoint, route.dropPoint),
-              SizedBox(height: 12),
-              Divider(height: 1),
-              SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildRouteInfo(Icons.access_time, route.peakTimings),
-                  _buildRouteInfo(Icons.people, '${route.avgRiders} riders'),
-                  _buildRouteInfo(Icons.eco, '${route.co2SavedPerRide}kg CO₂'),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRoutePoints(String from, String to) {
-    return Row(
-      children: [
-        Column(
-          children: [
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.circle,
-              ),
-            ),
-            Container(
-              width: 2,
-              height: 20,
-              color: Colors.grey[300],
-            ),
-            Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                from,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              SizedBox(height: 20),
-              Text(
-                to,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRouteInfo(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 14, color: Colors.grey[600]),
-        SizedBox(width: 4),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
     );
   }
 

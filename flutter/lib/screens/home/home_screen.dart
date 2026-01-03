@@ -6,6 +6,7 @@ import '../../widgets/animated_background.dart';
 import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import '../rides/search_rides_screen.dart';
+import '../search/ridemate_search_screen.dart';
 import '../trips/create_trip_screen.dart';
 import '../trips/my_trips_screen.dart';
 import '../vehicles/register_vehicle_screen.dart';
@@ -86,10 +87,37 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Icon(Icons.route_rounded, color: AppTheme.primaryOrange, size: 28),
           const SizedBox(width: 8),
-          const Text('RouteOpt', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('EcoPool', style: TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
       actions: [
+        // Diamond balance display
+        Container(
+          margin: EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [AppTheme.primaryOrange.withOpacity(0.2), AppTheme.accentOrange.withOpacity(0.2)],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppTheme.primaryOrange, width: 2),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.diamond, color: AppTheme.primaryOrange, size: 20),
+              SizedBox(width: 6),
+              Text(
+                '1250',
+                style: TextStyle(
+                  color: AppTheme.primaryOrange,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
         IconButton(
           icon: const Icon(Icons.notifications_outlined),
           onPressed: () {},
@@ -128,10 +156,7 @@ class _HomeScreenState extends State<HomeScreen> {
               label: 'Find Ride',
               color: AppTheme.primaryOrange,
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SearchRidesScreen()),
-                );
+                _showModeSelectionDialog();
               },
             ),
             if (_isDriver) _quickAccessItem(
@@ -208,89 +233,130 @@ class _HomeScreenState extends State<HomeScreen> {
     return FadeInUp(
       duration: const Duration(milliseconds: 500),
       child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppTheme.ecoGreen,
-              AppTheme.ecoGreen.withOpacity(0.7),
+        height: 220,
+        child: PageView(
+          children: [
+            // Slide 1: Carbon Saved
+            _buildCarouselCard(
+              icon: Icons.eco,
+              title: 'Carbon Saved',
+              mainValue: '12.5 kg',
+              subtitle: 'CO₂ this month',
+              tagline: 'Every ride counts! 🌍',
+              gradient: [AppTheme.ecoGreen, AppTheme.ecoGreen.withOpacity(0.7)],
+            ),
+            // Slide 2: Trees Saved
+            _buildCarouselCard(
+              icon: Icons.park,
+              title: 'Trees Saved',
+              mainValue: '23',
+              subtitle: 'equivalent trees planted',
+              tagline: 'You\'re a forest hero! 🌳',
+              gradient: [Colors.green[700]!, Colors.green[500]!],
+            ),
+            // Slide 3: AQI Improvement
+            _buildCarouselCard(
+              icon: Icons.air,
+              title: 'AQI Impact',
+              mainValue: '15%',
+              subtitle: 'local air quality improved',
+              tagline: 'Breathing better together! 💨',
+              gradient: [Colors.cyan[600]!, Colors.cyan[400]!],
+            ),
+            // Slide 4: Community Contribution
+            _buildCarouselCard(
+              icon: Icons.people,
+              title: 'Community Impact',
+              mainValue: '47',
+              subtitle: 'rides shared this month',
+              tagline: 'Squad goals unlocked! 🚗',
+              gradient: [AppTheme.primaryOrange, AppTheme.accentOrange],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCarouselCard({
+    required IconData icon,
+    required String title,
+    required String mainValue,
+    required String subtitle,
+    required String tagline,
+    required List<Color> gradient,
+  }) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 4),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: gradient,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: gradient[0].withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: Colors.white, size: 32),
+              SizedBox(width: 12),
+              Text(
+                title,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: AppTheme.ecoGreen.withOpacity(0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+          const SizedBox(height: 16),
+          Text(
+            mainValue,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 48,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -1,
             ),
-          ],
-        ),
-        child: Column(
-          children: [
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.eco,
-                  color: Colors.white,
-                  size: 32,
-                ),
-                SizedBox(width: 12),
-                Text(
-                  'Carbon Saved',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.9),
+              fontSize: 14,
             ),
-            const SizedBox(height: 20),
-            const Text(
-              '12.5 kg',
+          ),
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              tagline,
               style: TextStyle(
-                color: Colors.white,
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                letterSpacing: -1,
+                color: Colors.white.withOpacity(0.95),
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              'CO₂ this month',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.9),
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.trending_up, color: Colors.white, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    '24% more than last month',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.95),
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -507,6 +573,162 @@ class _HomeScreenState extends State<HomeScreen> {
           label: 'Messages',
         ),
       ],
+    );
+  }
+
+  void _showModeSelectionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.directions_car,
+                color: AppTheme.primaryOrange,
+                size: 48,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Choose Your Ride',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'How do you want to travel?',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 14,
+                ),
+              ),
+              SizedBox(height: 24),
+              // Auto-rickshaw option
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RideMateSearchScreen(initialMode: 'auto'),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppTheme.primaryOrange.withOpacity(0.1), AppTheme.accentOrange.withOpacity(0.1)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.primaryOrange, width: 2),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryOrange.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text('🛺', style: TextStyle(fontSize: 32)),
+                      ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Auto Pooling',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Squad up & save money 🛺',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, color: AppTheme.primaryOrange),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              // Carpooling option
+              GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RideMateSearchScreen(initialMode: 'carpooling'),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppTheme.ecoGreen.withOpacity(0.1), Colors.green[400]!.withOpacity(0.1)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.ecoGreen, width: 2),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.ecoGreen.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text('🚗', style: TextStyle(fontSize: 32)),
+                      ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Carpooling',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Slay the commute, split the bills 💅',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios, color: AppTheme.ecoGreen),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

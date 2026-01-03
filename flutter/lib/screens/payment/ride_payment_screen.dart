@@ -1,15 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../rides/post_ride_feedback_screen.dart';
 
 class RidePaymentScreen extends StatefulWidget {
-  final Map<String, dynamic> rideDetails;
-  final double amount;
+  final List<Map<String, dynamic>> ridemates;
+  final double distance;
+  final double co2Saved;
+  final String mode;
+  final String pickupLocation;
+  final String dropoffLocation;
 
   const RidePaymentScreen({
     Key? key,
-    required this.rideDetails,
-    required this.amount,
+    required this.ridemates,
+    required this.distance,
+    required this.co2Saved,
+    required this.mode,
+    required this.pickupLocation,
+    required this.dropoffLocation,
   }) : super(key: key);
 
   @override
@@ -50,6 +59,10 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
   }
 
   void _showPaymentSuccess() {
+    // Calculate price per person based on distance
+    double totalFare = widget.distance * 15; // ₹15 per km
+    double perPersonFare = totalFare / (widget.ridemates.length + 1); // +1 for current user
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -86,7 +99,7 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '₹${widget.amount.toStringAsFixed(2)} paid',
+                  '₹${perPersonFare.toStringAsFixed(2)} paid',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey.shade600,
@@ -133,9 +146,9 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _buildRewardStat('🌍', '2.5 kg', 'CO₂ Saved'),
+                          _buildRewardStat('🌍', '${widget.co2Saved.toStringAsFixed(1)} kg', 'CO₂ Saved'),
                           const SizedBox(width: 16),
-                          _buildRewardStat('📏', '12 km', 'Distance'),
+                          _buildRewardStat('📏', '${widget.distance.toStringAsFixed(1)} km', 'Distance'),
                         ],
                       ),
                     ],
@@ -147,7 +160,18 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context); // Close dialog
-                      Navigator.pop(context); // Go back to previous screen
+                      // Navigate to feedback screen
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PostRideFeedbackScreen(
+                            ridemates: widget.ridemates,
+                            mode: widget.mode,
+                            pickupLocation: widget.pickupLocation,
+                            dropoffLocation: widget.dropoffLocation,
+                          ),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
@@ -226,11 +250,19 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '₹${widget.amount.toStringAsFixed(2)}',
+                    '₹${((widget.distance * 15) / (widget.ridemates.length + 1)).toStringAsFixed(2)}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Split with ${widget.ridemates.length} rider${widget.ridemates.length > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.9),
+                      fontSize: 12,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -249,7 +281,7 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                         const Icon(Icons.route, color: Colors.white, size: 16),
                         const SizedBox(width: 8),
                         Text(
-                          widget.rideDetails['route'] ?? 'Ride completed',
+                          '${widget.pickupLocation} → ${widget.dropoffLocation}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -472,7 +504,7 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
               child: Column(
                 children: [
                   QrImageView(
-                    data: 'upi://pay?pa=driver@upi&pn=Driver&am=${widget.amount}&cu=INR',
+                    data: 'upi://pay?pa=driver@upi&pn=Driver&am=${((widget.distance * 15) / (widget.ridemates.length + 1)).toStringAsFixed(2)}&cu=INR',
                     version: QrVersions.auto,
                     size: 250,
                     eyeStyle: const QrEyeStyle(
@@ -482,7 +514,7 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    '₹${widget.amount.toStringAsFixed(2)}',
+                    '₹${((widget.distance * 15) / (widget.ridemates.length + 1)).toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

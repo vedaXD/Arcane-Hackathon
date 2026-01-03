@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
+import '../rides/active_ride_screen.dart';
 
 class RideMateSearchScreen extends StatefulWidget {
-  const RideMateSearchScreen({Key? key}) : super(key: key);
+  final String? initialMode;
+  
+  const RideMateSearchScreen({Key? key, this.initialMode}) : super(key: key);
 
   @override
   State<RideMateSearchScreen> createState() => _RideMateSearchScreenState();
@@ -31,6 +34,7 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
   @override
   void initState() {
     super.initState();
+    _selectedMode = widget.initialMode; // Set initial mode from parameter
     _radialController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -118,8 +122,8 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
           _pulseController.stop();
           _isSearching = false;
           
-          // Show chat room option for AUTO pooling
-          _showChatRoomDialog();
+          // Auto-allocate: Start ride immediately for auto-rickshaw
+          _autoAllocateAndStartRide();
         }
       });
     } else {
@@ -174,11 +178,226 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
           _pulseController.stop();
           _isSearching = false;
           
-          // Show chat room option for carpooling too
-          _showChatRoomDialog();
+          // For carpooling, show options dialog (request to join)
+          _showCarpoolOptionsDialog();
         }
       });
     }
+  }
+
+  void _autoAllocateAndStartRide() {
+    // Show allocation dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => FadeInUp(
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.green, size: 32),
+              SizedBox(width: 12),
+              Text('Squad Ready!'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Matched with ${_foundRidemates.length} people!',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 12),
+              Text(
+                'Same destination, same time 🛺',
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
+              SizedBox(height: 20),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange[200]!),
+                ),
+                child: Column(
+                  children: [
+                    ..._foundRidemates.map((mate) => Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Colors.orange[100],
+                            child: Text(mate['avatar'], style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(child: Text(mate['name'], style: TextStyle(fontWeight: FontWeight.w600))),
+                          Row(
+                            children: [
+                              Icon(Icons.star, color: Colors.amber, size: 16),
+                              Text(' ${mate['rating']}', style: TextStyle(fontSize: 12)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )).toList(),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                '💬 Chat room created for 24 hours',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                // Navigate to active ride screen
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ActiveRideScreen(
+                      mode: 'auto',
+                      pickup: _selectedPickup!,
+                      dropoff: _selectedDropoff!,
+                      ridemates: _foundRidemates,
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
+              child: Text(
+                'Start Ride 🛺',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCarpoolOptionsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => FadeInUp(
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Icon(Icons.people, color: Colors.green, size: 32),
+              SizedBox(width: 12),
+              Text('Carpoolers Found!'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Found ${_foundRidemates.length} people along your route',
+                style: TextStyle(fontSize: 14),
+              ),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Column(
+                  children: [
+                    ..._foundRidemates.map((mate) => Padding(
+                      padding: EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: Colors.green[100],
+                            child: Text(mate['avatar'], style: TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(mate['name'], style: TextStyle(fontWeight: FontWeight.w600)),
+                                Text(
+                                  mate['pickupPoint'] ?? mate['location'],
+                                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Request sent to ${mate['name']}!'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              minimumSize: Size(60, 32),
+                              padding: EdgeInsets.symmetric(horizontal: 12),
+                            ),
+                            child: Text('Request', style: TextStyle(fontSize: 11, color: Colors.white)),
+                          ),
+                        ],
+                      ),
+                    )).toList(),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue[700], size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'No payment needed - just share the ride! 🌱',
+                        style: TextStyle(fontSize: 11, color: Colors.blue[700]),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Close'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
             'gender': 'Male',
           });
