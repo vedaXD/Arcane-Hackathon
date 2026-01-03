@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:routeopt/theme/app_theme.dart';
 import 'package:routeopt/services/auth_service.dart';
 import 'package:routeopt/screens/auth/otp_verification_screen.dart';
@@ -24,8 +27,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _emergencyContactPhoneController = TextEditingController();
   final _emergencyContactRelationController = TextEditingController();
   final _authService = AuthService();
+  final ImagePicker _picker = ImagePicker();
   String _selectedGender = 'male';
   String? _faceImagePath;
+  File? _faceImageFile;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -468,18 +473,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                         ),
                         SizedBox(height: 12),
                         ElevatedButton.icon(
-                          onPressed: () {
-                            // Mock face capture
-                            setState(() {
-                              _faceImagePath = 'mock_face_${DateTime.now().millisecondsSinceEpoch}.jpg';
-                            });
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Face captured successfully! ✓'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          },
+                          onPressed: _takeFacePhoto,
                           icon: Icon(_faceImagePath != null ? Icons.refresh : Icons.camera_alt),
                           label: Text(_faceImagePath != null ? 'Retake Photo' : 'Capture Face Photo'),
                           style: ElevatedButton.styleFrom(
@@ -487,6 +481,86 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                             minimumSize: Size(double.infinity, 44),
                           ),
                         ),
+                        if (_faceImageFile != null) ...[
+                          SizedBox(height: 12),
+                          Container(
+                            height: 120,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.green, width: 2),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                _faceImageFile!,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Face photo captured successfully ✓',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ] else if (_faceImagePath != null) ...[
+                          SizedBox(height: 12),
+                          Container(
+                            height: 120,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.green, width: 2),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                color: Colors.green.shade50,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.verified_user,
+                                      size: 40,
+                                      color: Colors.green,
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Face ID\nSimulated',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.green.shade700,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      '✓ Verified',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.green.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            '✓ Face verification simulated successfully',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                         if (_faceImagePath == null) ...[
                           SizedBox(height: 8),
                           Text(
@@ -985,6 +1059,215 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           ),
         ),
       ],
+    );
+  }
+
+  Future<void> _takeFacePhoto() async {
+    try {
+      // Show camera options dialog with simulation notice
+      final option = await showModalBottomSheet<String>(
+        context: context,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) => Container(
+          padding: EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Face Photo Capture',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 16),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.blue,
+                      size: 32,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Camera functionality is simulated',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.blue.shade700,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'This will simulate taking a face photo for verification purposes',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.blue.shade600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => Navigator.pop(context, 'camera'),
+                      icon: Icon(Icons.camera_alt),
+                      label: Text('Simulate Camera'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryOrange,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(context, 'gallery'),
+                      icon: Icon(Icons.photo_library),
+                      label: Text('Simulate Gallery'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppTheme.primaryOrange,
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 10),
+            ],
+          ),
+        ),
+      );
+
+      if (option != null && mounted) {
+        // Show simulation progress
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => Center(
+            child: Container(
+              padding: EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryOrange),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    option == 'camera' ? 'Simulating Camera Capture...' : 'Simulating Gallery Selection...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Face photo verification simulated',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        
+        // Simulate processing time
+        await Future.delayed(Duration(seconds: 2));
+        
+        Navigator.pop(context); // Close loading dialog
+        
+        // Simulate successful capture
+        setState(() {
+          _faceImagePath = 'simulated_face_${DateTime.now().millisecondsSinceEpoch}.jpg';
+          _faceImageFile = null; // No actual file for simulation
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Face Photo Simulated Successfully! ✓'),
+                      Text(
+                        'Face verification has been simulated for demo purposes',
+                        style: TextStyle(fontSize: 12, color: Colors.green.shade100),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Simulation failed: ${e.toString()}'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Camera Permission Required'),
+          content: Text(
+            'Camera access is required to capture your face photo for verification. Please enable camera permission in app settings.',
+          ),
+          actions: [
+            TextButton(
+              child: Text('Cancel'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            ElevatedButton(
+              child: Text('Open Settings'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                openAppSettings();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

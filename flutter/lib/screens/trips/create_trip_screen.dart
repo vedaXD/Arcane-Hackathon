@@ -19,14 +19,12 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   final _fromController = TextEditingController();
   final _toController = TextEditingController();
   final _seatsController = TextEditingController(text: '2');
-  final _priceController = TextEditingController();
   final _tripService = TripService();
   bool _isCreating = false;
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   String _vehicleType = 'Sedan';
   bool _acAvailable = true;
-  String _genderPreference = 'any';
   List<String> _fromSuggestions = [];
   List<String> _toSuggestions = [];
     // Mock coordinates - replace with geocoding
@@ -35,16 +33,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   double _endLat = 19.0596;
   double _endLng = 72.8656;
 
-  // New fields for community pooling
-  String _tripType = 'offering'; // 'offering' or 'seeking'
-  String _transportMode = 'car'; // 'car', 'bike', 'auto', 'public', 'any'
-
   @override
   void dispose() {
     _fromController.dispose();
     _toController.dispose();
     _seatsController.dispose();
-    _priceController.dispose();
     super.dispose();
   }
 
@@ -62,11 +55,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Trip Type Toggle
-              FadeInDown(
-                child: _buildTripTypeToggle(),
-              ),
-              const SizedBox(height: 20),
               FadeInDown(
                 child: _buildLocationSection(),
               ),
@@ -78,21 +66,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               const SizedBox(height: 20),
               FadeInDown(
                 delay: const Duration(milliseconds: 200),
-                child: _tripType == 'offering' ? _buildVehicleSection() : const SizedBox.shrink(),
-              ),
-              if (_tripType == 'offering') const SizedBox(height: 20),
-              FadeInDown(
-                delay: const Duration(milliseconds: 300),
-                child: _buildPricingSection(),
-              ),
-              const SizedBox(height: 20),
-              FadeInDown(
-                delay: const Duration(milliseconds: 350),
-                child: _buildPreferencesSection(),
+                child: _buildVehicleSection(),
               ),
               const SizedBox(height: 30),
               FadeInUp(
-                delay: const Duration(milliseconds: 400),
+                delay: const Duration(milliseconds: 300),
                 child: _buildCreateButton(),
               ),
             ],
@@ -390,247 +368,6 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
     );
   }
 
-  Widget _buildPricingSection() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.payments, color: AppTheme.primaryOrange),
-                const SizedBox(width: 8),
-                const Text(
-                  'Pricing',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _priceController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Price per Seat (₹)',
-                prefixIcon: const Icon(Icons.currency_rupee),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: AppTheme.offWhite,
-                helperText: 'Suggested: ₹50-150 based on distance',
-              ),
-              validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPreferencesSection() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.people, color: AppTheme.primaryOrange),
-                const SizedBox(width: 8),
-                const Text(
-                  'Passenger Preferences',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _genderPreference,
-              decoration: InputDecoration(
-                labelText: 'Gender Preference',
-                prefixIcon: const Icon(Icons.person_outline),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                filled: true,
-                fillColor: AppTheme.offWhite,
-              ),
-              items: const [
-                DropdownMenuItem(value: 'any', child: Text('No Preference')),
-                DropdownMenuItem(value: 'male', child: Text('Male Only')),
-                DropdownMenuItem(value: 'female', child: Text('Female Only')),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _genderPreference = value;
-                  });
-                }
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTripTypeToggle() {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.directions_car, color: AppTheme.primaryOrange),
-                const SizedBox(width: 8),
-                const Text(
-                  'What are you planning?',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _tripType = 'offering'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: _tripType == 'offering' ? Colors.green : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.car_rental,
-                              color: _tripType == 'offering' ? Colors.white : Colors.grey,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Offering Ride',
-                              style: TextStyle(
-                                color: _tripType == 'offering' ? Colors.white : Colors.grey,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              'I have a vehicle',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: _tripType == 'offering' ? Colors.white70 : Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      onTap: () => setState(() => _tripType = 'seeking'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: _tripType == 'seeking' ? Colors.orange : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.group,
-                              color: _tripType == 'seeking' ? Colors.white : Colors.grey,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Seeking Ride',
-                              style: TextStyle(
-                                color: _tripType == 'seeking' ? Colors.white : Colors.grey,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              'Find ride-mates',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: _tripType == 'seeking' ? Colors.white70 : Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (_tripType == 'seeking') ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.shade200),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.info, size: 16, color: Colors.orange),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Perfect for auto-rickshaw or public transport pooling! Find people going the same way.',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _transportMode,
-                decoration: InputDecoration(
-                  labelText: 'Preferred Transport Mode',
-                  prefixIcon: const Icon(Icons.directions_transit),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: AppTheme.offWhite,
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'auto', child: Text('🛺 Auto Rickshaw')),
-                  DropdownMenuItem(value: 'public', child: Text('🚌 Public Transport')),
-                  DropdownMenuItem(value: 'bike', child: Text('🏍️ Bike')),
-                  DropdownMenuItem(value: 'any', child: Text('Any Mode')),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _transportMode = value);
-                  }
-                },
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildCreateButton() {
     return Container(
       height: 56,
@@ -665,9 +402,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   strokeWidth: 2,
                 ),
               )
-            : Text(
-                _tripType == 'offering' ? 'Create Trip Offer' : 'Find Ride-Mates',
-                style: const TextStyle(
+            : const Text(
+                'Create Trip Offer',
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -707,8 +444,8 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         endLongitude: _endLng,
         departureTime: departureDateTime,
         availableSeats: int.parse(_seatsController.text),
-        genderPreference: _genderPreference,
-        pricePerSeat: double.parse(_priceController.text),
+        genderPreference: 'any', // Default to any since field was removed
+        pricePerSeat: 45.0, // Default price since pricing field was removed
         status: 'scheduled',
         createdAt: DateTime.now(), // Will be overwritten by backend
         updatedAt: DateTime.now(), // Will be overwritten by backend

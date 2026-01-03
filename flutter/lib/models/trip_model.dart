@@ -17,6 +17,9 @@ class Trip {
   final String status; // 'scheduled', 'active', 'completed', 'cancelled'
   final DateTime createdAt;
   final DateTime updatedAt;
+  final double? distanceFromPickup; // Distance from user's pickup point in km
+  final bool isAvailable; // Whether the trip is available for request
+  final String? unavailabilityReason; // Reason if not available
 
   Trip({
     required this.id,
@@ -37,6 +40,9 @@ class Trip {
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    this.distanceFromPickup,
+    this.isAvailable = true,
+    this.unavailabilityReason,
   });
 
   factory Trip.fromJson(Map<String, dynamic> json) {

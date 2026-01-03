@@ -11,6 +11,8 @@ class RidePaymentScreen extends StatefulWidget {
   final String mode;
   final String pickupLocation;
   final String dropoffLocation;
+  final double? totalFare;
+  final double? farePerPerson;
 
   const RidePaymentScreen({
     Key? key,
@@ -20,6 +22,8 @@ class RidePaymentScreen extends StatefulWidget {
     required this.mode,
     required this.pickupLocation,
     required this.dropoffLocation,
+    this.totalFare,
+    this.farePerPerson,
   }) : super(key: key);
 
   @override
@@ -60,9 +64,17 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
   }
 
   void _showPaymentSuccess() {
-    // Calculate price per person based on distance
-    double totalFare = widget.distance * 15; // ₹15 per km
-    double perPersonFare = totalFare / (widget.ridemates.length + 1); // +1 for current user
+    // Use actual fare data if available, otherwise calculate based on distance
+    double totalFare;
+    double perPersonFare;
+    
+    if (widget.totalFare != null && widget.farePerPerson != null) {
+      totalFare = widget.totalFare!;
+      perPersonFare = widget.farePerPerson!;
+    } else {
+      totalFare = widget.distance * 15; // ₹15 per km (fallback)
+      perPersonFare = totalFare / (widget.ridemates.length + 1); // +1 for current user
+    }
     
     showDialog(
       context: context,
@@ -249,7 +261,9 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '₹${((widget.distance * 15) / (widget.ridemates.length + 1)).toStringAsFixed(2)}',
+                    widget.farePerPerson != null 
+                      ? '₹${widget.farePerPerson!.toStringAsFixed(2)}'
+                      : '₹${((widget.distance * 15) / (widget.ridemates.length + 1)).toStringAsFixed(2)}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 48,
@@ -258,7 +272,9 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Split with ${widget.ridemates.length} rider${widget.ridemates.length > 1 ? 's' : ''}',
+                    widget.totalFare != null 
+                      ? 'Your share from ₹${widget.totalFare!.toStringAsFixed(2)} total'
+                      : 'Split with ${widget.ridemates.length} rider${widget.ridemates.length > 1 ? 's' : ''}',
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.9),
                       fontSize: 12,
@@ -501,7 +517,9 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
               child: Column(
                 children: [
                   QrImageView(
-                    data: 'upi://pay?pa=driver@upi&pn=Driver&am=${((widget.distance * 15) / (widget.ridemates.length + 1)).toStringAsFixed(2)}&cu=INR',
+                    data: widget.farePerPerson != null 
+                      ? 'upi://pay?pa=driver@upi&pn=Driver&am=${widget.farePerPerson!.toStringAsFixed(2)}&cu=INR'
+                      : 'upi://pay?pa=driver@upi&pn=Driver&am=${((widget.distance * 15) / (widget.ridemates.length + 1)).toStringAsFixed(2)}&cu=INR',
                     version: QrVersions.auto,
                     size: 250,
                     eyeStyle: const QrEyeStyle(
@@ -511,7 +529,9 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    '₹${((widget.distance * 15) / (widget.ridemates.length + 1)).toStringAsFixed(2)}',
+                    widget.farePerPerson != null 
+                      ? '₹${widget.farePerPerson!.toStringAsFixed(2)}'
+                      : '₹${((widget.distance * 15) / (widget.ridemates.length + 1)).toStringAsFixed(2)}',
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,

@@ -15,7 +15,7 @@ class _DropoffLocationMapScreenState extends State<DropoffLocationMapScreen> {
   MapController? _mapController;
   
   // Hardcoded VESIT College coordinates
-  static const LatLng _vesitCollege = LatLng(19.0539, 72.9101);
+  static const LatLng _vesitCollege = LatLng(19.046111, 72.887222);
   
   @override
   void initState() {

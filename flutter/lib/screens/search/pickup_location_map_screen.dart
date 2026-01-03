@@ -15,7 +15,7 @@ class _PickupLocationMapScreenState extends State<PickupLocationMapScreen> {
   MapController? _mapController;
   
   // Hardcoded Chembur Station coordinates
-  static const LatLng _chemburStation = LatLng(19.0622, 72.8997);
+  static const LatLng _chemburStation = LatLng(19.063056, 72.900556);
   
   @override
   void initState() {

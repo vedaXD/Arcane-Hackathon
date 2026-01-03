@@ -15,8 +15,8 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
   MapController? _mapController;
   
   // Hardcoded locations
-  static const LatLng _chemburStation = LatLng(19.0622, 72.8997);
-  static const LatLng _vesitCollege = LatLng(19.0539, 72.9101);
+  static const LatLng _chemburStation = LatLng(19.063056, 72.900556);
+  static const LatLng _vesitCollege = LatLng(19.046111, 72.887222);
   
   @override
   void initState() {
@@ -46,15 +46,6 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.ecopool.app',
               ),
-              PolylineLayer(
-                polylines: [
-                  Polyline(
-                    points: [_chemburStation, _vesitCollege],
-                    color: AppTheme.ecoGreen,
-                    strokeWidth: 4,
-                  ),
-                ],
-              ),
               MarkerLayer(
                 markers: [
                   Marker(
@@ -63,7 +54,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                     height: 40,
                     child: Icon(
                       Icons.location_on,
-                      color: AppTheme.ecoGreen,
+                      color: Colors.blue,
                       size: 40,
                     ),
                   ),
@@ -73,7 +64,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
                     height: 40,
                     child: Icon(
                       Icons.location_on,
-                      color: AppTheme.primaryOrange,
+                      color: Colors.red,
                       size: 40,
                     ),
                   ),

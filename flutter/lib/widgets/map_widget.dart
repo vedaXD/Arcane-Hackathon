@@ -169,7 +169,7 @@ Marker createCustomMarker({
 Widget pickupMarker() {
   return Container(
     decoration: BoxDecoration(
-      color: AppTheme.ecoGreen,
+      color: Colors.blue,
       shape: BoxShape.circle,
       border: Border.all(color: Colors.white, width: 3),
       boxShadow: [
@@ -191,7 +191,7 @@ Widget pickupMarker() {
 Widget dropoffMarker() {
   return Container(
     decoration: BoxDecoration(
-      color: AppTheme.error,
+      color: Colors.red,
       shape: BoxShape.circle,
       border: Border.all(color: Colors.white, width: 3),
       boxShadow: [

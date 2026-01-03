@@ -88,6 +88,107 @@ class _RideChatRoomScreenState extends State<RideChatRoomScreen> {
   }
 
   void _initiateEndRideVoting() {
+    // Show fare input dialog first
+    _showFareInputDialog();
+  }
+
+  void _showFareInputDialog() {
+    double totalFare = 0.0;
+    TextEditingController fareController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.currency_rupee, color: AppTheme.primaryOrange),
+            SizedBox(width: 12),
+            Text('Enter Total Fare'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'What was the total fare for this ride?',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: fareController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: 'Total Fare Amount',
+                prefixIcon: Icon(Icons.currency_rupee, color: AppTheme.primaryOrange),
+                suffixText: '₹',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                hintText: 'e.g., 120',
+              ),
+              autofocus: true,
+            ),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.ecoGreen.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'This amount will be split between:',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: 4),
+                  Text(
+                    '${widget.ridemates.length + 1} riders (You + ${widget.ridemates.length} others)',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              String fareText = fareController.text.trim();
+              if (fareText.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Please enter the fare amount')),
+                );
+                return;
+              }
+              
+              totalFare = double.tryParse(fareText) ?? 0.0;
+              if (totalFare <= 0) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Please enter a valid amount')),
+                );
+                return;
+              }
+              
+              Navigator.pop(context);
+              _proceedWithEndRide(totalFare);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppTheme.ecoGreen),
+            child: Text('Continue'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _proceedWithEndRide(double totalFare) {
+    int totalRiders = widget.ridemates.length + 1; // +1 for current user
+    double farePerPerson = totalFare / totalRiders;
+    
     setState(() {
       _showEndRideVoting = true;
       _endRideVotes['You'] = true; // Current user voted
@@ -99,19 +200,19 @@ class _RideChatRoomScreenState extends State<RideChatRoomScreen> {
       
       _messages.add({
         'sender': 'System',
-        'message': '🏁 All riders agreed to end the ride!',
+        'message': '🏁 All riders agreed to end the ride!\n\nFare Details:\n💰 Total: ₹${totalFare.toStringAsFixed(2)}\n👥 Per person: ₹${farePerPerson.toStringAsFixed(2)} (${totalRiders} riders)',
         'time': DateTime.now(),
         'isSystem': true,
       });
     });
     
-    // Since everyone voted, end ride immediately
-    Future.delayed(Duration(milliseconds: 500), () {
-      _endRide();
+    // Since everyone voted, end ride with fare details
+    Future.delayed(Duration(milliseconds: 1000), () {
+      _endRide(totalFare, farePerPerson);
     });
   }
 
-  void _endRide() {
+  void _endRide([double? totalFare, double? farePerPerson]) {
     // Calculate total distance and price
     double distance = 5.2; // Mock distance
     double co2Saved = 2.5; // Mock CO2
@@ -126,6 +227,8 @@ class _RideChatRoomScreenState extends State<RideChatRoomScreen> {
           mode: widget.mode,
           pickupLocation: widget.pickupLocation,
           dropoffLocation: widget.dropoffLocation,
+          totalFare: totalFare, // Pass the actual fare
+          farePerPerson: farePerPerson, // Pass the individual amount
         ),
       ),
     );

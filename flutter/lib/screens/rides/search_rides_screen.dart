@@ -9,6 +9,7 @@ import '../../services/trip_service.dart';
 import '../../services/auth_service.dart';
 import '../../models/trip_model.dart';
 import '../../models/user_model.dart';
+import 'route_optimization_screen.dart';
 
 class SearchRidesScreen extends StatefulWidget {
   const SearchRidesScreen({super.key});
@@ -170,7 +171,7 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
     await Future.delayed(Duration(seconds: 5));
 
     if (mounted) {
-      // Create 3 mock matched ridemates
+      // Create 6 mock matched ridemates with distance-based availability
       final mockMatches = <Trip>[
         Trip(
           id: 1,
@@ -179,11 +180,11 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           vehicleId: 201,
           vehicleModel: 'Honda City',
           startLocation: _fromController.text,
-          startLatitude: 19.0330,
-          startLongitude: 72.8640,
+          startLatitude: 19.063056, // Near Chembur
+          startLongitude: 72.900556,
           endLocation: _toController.text,
-          endLatitude: 19.0728,
-          endLongitude: 72.8826,
+          endLatitude: 19.046111, // VESIT
+          endLongitude: 72.887222,
           departureTime: _scheduleForLater 
               ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
               : DateTime.now(),
@@ -193,6 +194,8 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           status: 'scheduled',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
+          distanceFromPickup: 0.2, // Very close - available
+          isAvailable: true,
         ),
         Trip(
           id: 2,
@@ -201,11 +204,11 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           vehicleId: 202,
           vehicleModel: 'Maruti Swift',
           startLocation: _fromController.text,
-          startLatitude: 19.0330,
-          startLongitude: 72.8640,
+          startLatitude: 19.060000, // Close to pickup
+          startLongitude: 72.895000,
           endLocation: _toController.text,
-          endLatitude: 19.0728,
-          endLongitude: 72.8826,
+          endLatitude: 19.046111,
+          endLongitude: 72.887222,
           departureTime: _scheduleForLater 
               ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
               : DateTime.now(),
@@ -215,6 +218,8 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           status: 'scheduled',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
+          distanceFromPickup: 0.8, // Close - available
+          isAvailable: true,
         ),
         Trip(
           id: 3,
@@ -223,11 +228,11 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           vehicleId: 203,
           vehicleModel: 'Toyota Innova',
           startLocation: _fromController.text,
-          startLatitude: 19.0330,
-          startLongitude: 72.8640,
+          startLatitude: 19.058000,
+          startLongitude: 72.905000,
           endLocation: _toController.text,
-          endLatitude: 19.0728,
-          endLongitude: 72.8826,
+          endLatitude: 19.046111,
+          endLongitude: 72.887222,
           departureTime: _scheduleForLater 
               ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
               : DateTime.now(),
@@ -237,6 +242,83 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           status: 'scheduled',
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
+          distanceFromPickup: 1.2, // Moderate - available
+          isAvailable: true,
+        ),
+        Trip(
+          id: 4,
+          driverId: 104,
+          driverName: 'Sneha Patel',
+          vehicleId: 204,
+          vehicleModel: 'Hyundai i20',
+          startLocation: 'Kurla Railway Station',
+          startLatitude: 19.072800, // Far from pickup
+          startLongitude: 72.879400,
+          endLocation: _toController.text,
+          endLatitude: 19.046111,
+          endLongitude: 72.887222,
+          departureTime: _scheduleForLater 
+              ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
+              : DateTime.now(),
+          availableSeats: 2,
+          genderPreference: 'any',
+          pricePerSeat: 35.0,
+          status: 'scheduled',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          distanceFromPickup: 3.5, // Too far - unavailable
+          isAvailable: false,
+          unavailabilityReason: 'Route deviates too far from your pickup location',
+        ),
+        Trip(
+          id: 5,
+          driverId: 105,
+          driverName: 'Vikram Singh',
+          vehicleId: 205,
+          vehicleModel: 'Mahindra XUV300',
+          startLocation: 'Sion Railway Station',
+          startLatitude: 19.043400, // Very far
+          startLongitude: 72.861800,
+          endLocation: _toController.text,
+          endLatitude: 19.046111,
+          endLongitude: 72.887222,
+          departureTime: _scheduleForLater 
+              ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
+              : DateTime.now(),
+          availableSeats: 4,
+          genderPreference: 'any',
+          pricePerSeat: 42.0,
+          status: 'scheduled',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          distanceFromPickup: 4.8, // Too far - unavailable
+          isAvailable: false,
+          unavailabilityReason: 'Pickup location too far from route',
+        ),
+        Trip(
+          id: 6,
+          driverId: 106,
+          driverName: 'Anita Desai',
+          vehicleId: 206,
+          vehicleModel: 'Tata Nexon',
+          startLocation: 'Ghatkopar Railway Station',
+          startLatitude: 19.086517, // Very far
+          startLongitude: 72.908896,
+          endLocation: _toController.text,
+          endLatitude: 19.046111,
+          endLongitude: 72.887222,
+          departureTime: _scheduleForLater 
+              ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
+              : DateTime.now(),
+          availableSeats: 3,
+          genderPreference: 'female',
+          pricePerSeat: 38.0,
+          status: 'scheduled',
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+          distanceFromPickup: 5.2, // Too far - unavailable
+          isAvailable: false,
+          unavailabilityReason: 'Route efficiency compromised due to distance',
         ),
       ];
 
@@ -396,12 +478,16 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
         margin: EdgeInsets.only(bottom: 16),
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: trip.isAvailable ? Colors.white : Colors.grey[100],
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.lightGray.withOpacity(0.5)),
+          border: Border.all(
+            color: trip.isAvailable 
+              ? AppTheme.lightGray.withOpacity(0.5)
+              : Colors.grey[300]!,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withOpacity(trip.isAvailable ? 0.05 : 0.02),
               blurRadius: 10,
               offset: Offset(0, 2),
             ),
@@ -413,8 +499,13 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
               children: [
                 CircleAvatar(
                   radius: 25,
-                  backgroundColor: AppTheme.lightOrange,
-                  child: Icon(Icons.person, color: Colors.white),
+                  backgroundColor: trip.isAvailable 
+                    ? AppTheme.lightOrange
+                    : Colors.grey[400],
+                  child: Icon(
+                    Icons.person, 
+                    color: Colors.white,
+                  ),
                 ),
                 SizedBox(width: 12),
                 Expanded(
@@ -426,23 +517,63 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.darkGray,
+                          color: trip.isAvailable 
+                            ? AppTheme.darkGray
+                            : Colors.grey[600],
                         ),
                       ),
                       SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.directions_car, color: AppTheme.mediumGray, size: 16),
+                          Icon(
+                            Icons.directions_car, 
+                            color: trip.isAvailable 
+                              ? AppTheme.mediumGray
+                              : Colors.grey[500], 
+                            size: 16,
+                          ),
                           SizedBox(width: 4),
                           Text(
                             trip.vehicleModel ?? 'Vehicle',
                             style: TextStyle(
                               fontSize: 13,
-                              color: AppTheme.mediumGray,
+                              color: trip.isAvailable 
+                                ? AppTheme.mediumGray
+                                : Colors.grey[500],
                             ),
                           ),
                         ],
                       ),
+                      // Distance indicator
+                      if (trip.distanceFromPickup != null) ...[
+                        SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.near_me,
+                              color: trip.distanceFromPickup! <= 2.0 
+                                ? AppTheme.ecoGreen
+                                : trip.distanceFromPickup! <= 3.0
+                                  ? AppTheme.primaryOrange
+                                  : Colors.red,
+                              size: 14,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '${trip.distanceFromPickup!.toStringAsFixed(1)} km away',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: trip.distanceFromPickup! <= 2.0 
+                                  ? AppTheme.ecoGreen
+                                  : trip.distanceFromPickup! <= 3.0
+                                    ? AppTheme.primaryOrange
+                                    : Colors.red,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -454,14 +585,18 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryOrange,
+                        color: trip.isAvailable 
+                          ? AppTheme.primaryOrange
+                          : Colors.grey[500],
                       ),
                     ),
                     Text(
                       'per seat',
                       style: TextStyle(
                         fontSize: 11,
-                        color: AppTheme.mediumGray,
+                        color: trip.isAvailable 
+                          ? AppTheme.mediumGray
+                          : Colors.grey[400],
                       ),
                     ),
                   ],
@@ -477,20 +612,20 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
                       width: 12,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: Colors.green,
+                        color: trip.isAvailable ? Colors.green : Colors.grey[400],
                         shape: BoxShape.circle,
                       ),
                     ),
                     Container(
                       width: 2,
                       height: 30,
-                      color: Colors.grey[300],
+                      color: trip.isAvailable ? Colors.grey[300] : Colors.grey[400],
                     ),
                     Container(
                       width: 12,
                       height: 12,
                       decoration: BoxDecoration(
-                        color: Colors.red,
+                        color: trip.isAvailable ? Colors.red : Colors.grey[400],
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -503,14 +638,26 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
                     children: [
                       Text(
                         trip.startLocation,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          fontSize: 14, 
+                          fontWeight: FontWeight.w500,
+                          color: trip.isAvailable 
+                            ? AppTheme.darkGray
+                            : Colors.grey[600],
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       SizedBox(height: 30),
                       Text(
                         trip.endLocation,
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        style: TextStyle(
+                          fontSize: 14, 
+                          fontWeight: FontWeight.w500,
+                          color: trip.isAvailable 
+                            ? AppTheme.darkGray
+                            : Colors.grey[600],
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -521,33 +668,27 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
             ),
             SizedBox(height: 16),
             // Map showing route
-            MapWidget(
-              center: LatLng(
-                (trip.startLatitude + trip.endLatitude) / 2,
-                (trip.startLongitude + trip.endLongitude) / 2,
+            Opacity(
+              opacity: trip.isAvailable ? 1.0 : 0.5,
+              child: MapWidget(
+                center: LatLng(
+                  (trip.startLatitude + trip.endLatitude) / 2,
+                  (trip.startLongitude + trip.endLongitude) / 2,
+                ),
+                zoom: 12,
+                height: 150,
+                showControls: false,
+                markers: [
+                  createCustomMarker(
+                    point: LatLng(trip.startLatitude, trip.startLongitude),
+                    child: pickupMarker(),
+                  ),
+                  createCustomMarker(
+                    point: LatLng(trip.endLatitude, trip.endLongitude),
+                    child: dropoffMarker(),
+                  ),
+                ],
               ),
-              zoom: 12,
-              height: 150,
-              showControls: false,
-              markers: [
-                createCustomMarker(
-                  point: LatLng(trip.startLatitude, trip.startLongitude),
-                  child: pickupMarker(),
-                ),
-                createCustomMarker(
-                  point: LatLng(trip.endLatitude, trip.endLongitude),
-                  child: dropoffMarker(),
-                ),
-              ],
-              polylines: [
-                createRoutePolyline(
-                  points: [
-                    LatLng(trip.startLatitude, trip.startLongitude),
-                    LatLng(trip.endLatitude, trip.endLongitude),
-                  ],
-                  color: AppTheme.primaryOrange,
-                ),
-              ],
             ),
             SizedBox(height: 16),
             Divider(height: 1),
@@ -594,18 +735,65 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
                       ),
                     ],
                   ),
-                ElevatedButton(
-                  onPressed: () => _showRequestDialog(trip),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryOrange,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                trip.isAvailable
+                  ? ElevatedButton(
+                      onPressed: () => _showRequestDialog(trip),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryOrange,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text('Request', style: TextStyle(color: Colors.white)),
+                    )
+                  : Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Unavailable',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Text('Request', style: TextStyle(color: Colors.white)),
-                ),
               ],
             ),
+            // Show unavailability reason if trip is not available
+            if (!trip.isAvailable && trip.unavailabilityReason != null) ...[
+              SizedBox(height: 12),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.orange[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.orange[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 16,
+                      color: Colors.orange[700],
+                    ),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        trip.unavailabilityReason!,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.orange[800],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -1065,93 +1253,111 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
       ),
     );
 
-    try {
-      final result = await _tripService.requestTrip(
-        tripId: trip.id,
-        seatsRequested: seatsRequested,
-        message: message.isNotEmpty ? message : null,
-      );
+    // Simulate API call delay
+    await Future.delayed(Duration(seconds: 2));
 
-      if (mounted) {
-        Navigator.pop(context); // Close loading dialog
+    if (mounted) {
+      Navigator.pop(context); // Close loading dialog
 
-        if (result['success']) {
-          // Show success dialog
-          showDialog(
-            context: context,
-            builder: (context) => AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+      // Simulate request acceptance (hardcoded success)
+      _showAcceptanceDialog(trip, seatsRequested);
+    }
+  }
+
+  void _showAcceptanceDialog(Trip trip, int seatsRequested) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            SizedBox(width: 12),
+            Text('Request Accepted!'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Great news! ${trip.driverName} accepted your request.'),
+            SizedBox(height: 16),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.ecoGreen.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
               ),
-              title: Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.green, size: 28),
-                  SizedBox(width: 12),
-                  Text('Request Sent!'),
-                ],
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Your trip request has been sent to the driver.'),
-                  SizedBox(height: 12),
                   Text(
-                    'You requested $seatsRequested seat(s)',
-                    style: TextStyle(color: Colors.grey[600]),
+                    'Trip Details:',
+                    style: TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  Text(
-                    'Driver: ${trip.driverName}',
-                    style: TextStyle(color: Colors.grey[600]),
-                  ),
-                  SizedBox(height: 12),
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.info.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'You will be notified when the driver responds.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppTheme.info,
-                      ),
-                    ),
-                  ),
+                  SizedBox(height: 8),
+                  Text('🚗 ${trip.vehicleModel}'),
+                  Text('💺 $seatsRequested seat(s) confirmed'),
+                  Text('💰 ₹${(trip.pricePerSeat * seatsRequested).toStringAsFixed(0)} total'),
+                  Text('⏰ ${trip.departureTime.hour}:${trip.departureTime.minute.toString().padLeft(2, '0')}'),
                 ],
               ),
-              actions: [
-                ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryOrange,
-                  ),
-                  child: Text('OK', style: TextStyle(color: Colors.white)),
-                ),
-              ],
             ),
-          );
-        } else {
-          // Show error
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Failed to send request'),
-              backgroundColor: Colors.red,
+            SizedBox(height: 16),
+            Text(
+              'The route is being optimized for all passengers...',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
             ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context); // Close loading dialog
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              _navigateToRouteOptimization(trip, seatsRequested);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.ecoGreen,
+            ),
+            child: Text('View Route', style: TextStyle(color: Colors.white)),
           ),
-        );
-      }
-    }
+        ],
+      ),
+    );
+  }
+
+  void _navigateToRouteOptimization(Trip trip, int seatsRequested) {
+    // Prepare trip data for route optimization
+    final tripData = {
+      'trip': trip,
+      'requestedSeats': seatsRequested,
+      'pickupLocation': _fromController.text,
+      'dropoffLocation': _toController.text,
+    };
+
+    // Mock passenger data including the user
+    final passengers = [
+      {'name': 'You', 'seats': seatsRequested, 'pickup': _fromController.text},
+      {'name': 'Rahul S.', 'seats': 1, 'pickup': 'Kurla Railway Station'},
+      {'name': 'Priya M.', 'seats': 1, 'pickup': 'Kurla Railway Station'},
+      {'name': 'Amit K.', 'seats': 1, 'pickup': 'Sion Railway Station'},
+    ];
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => RouteOptimizationScreen(
+          tripData: tripData,
+          passengers: passengers,
+        ),
+      ),
+    );
   }
 }
