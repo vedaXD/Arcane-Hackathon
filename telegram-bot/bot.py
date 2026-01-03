@@ -72,16 +72,24 @@ class CarpoolBot:
         user_id = update.effective_user.id
         
         if user_id in user_sessions:
-            await update.message.reply_text(
-                f"Welcome back, {update.effective_user.first_name}! 👋\n\n"
-                "I'm your AI-powered carpooling assistant. Just tell me what you need:\n"
-                "• 'Find ridemates to VESIT' (Carpooling or Auto)\n"
+            welcome_msg = (
+                f"🎉 Welcome back, {update.effective_user.first_name}! ✨\n\n"
+                "🚗 **EcoPool AI Assistant** - Your Smart Carpooling Companion\n\n"
+                "I'm here to make your commute easier, greener, and more social! 🌱\n\n"
+                "💬 **Just talk to me naturally! Try saying:**\n"
+                "• 'Find me ridemates to VESIT tomorrow at 9 AM'\n"
                 "• 'Show my active rides'\n"
-                "• 'Check my diamond balance'\n"
-                "• 'View rewards marketplace'\n"
-                "• 'How much CO₂ have I saved?'\n\n"
-                "Slay the commute, split the bills 💅"
+                "• 'How many diamonds do I have?'\n"
+                "• 'I want to donate to environmental NGOs'\n"
+                "• 'What rewards can I get with my diamonds?'\n\n"
+                "🌟 **Why EcoPool rocks:**\n"
+                "• Save money by sharing rides 💰\n"
+                "• Earn Carbon Crystals (diamonds) for eco-rides 💎\n"
+                "• Meet awesome people from your organization 👥\n"
+                "• Help save the planet, one ride at a time 🌍\n\n"
+                "Ready to slay your commute? Just send me a message! 💅"
             )
+            await update.message.reply_text(welcome_msg, parse_mode='Markdown')
             return ConversationHandler.END
         
         keyboard = [
@@ -90,16 +98,26 @@ class CarpoolBot:
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         
+        welcome_msg = (
+            "🌟 **Welcome to EcoPool!** 🌟\n\n"
+            "💅 *Slay the Commute, Save the Planet!*\n\n"
+            "🤖 I'm your **AI Carpooling Assistant** - think of me as your smart travel buddy! \n\n"
+            "✨ **What makes EcoPool special?**\n"
+            "🚗 Smart ride-matching for your organization\n"
+            "💎 Earn **Carbon Crystals** (diamonds) for eco-friendly rides\n"
+            "🎁 Redeem rewards & trade with fellow commuters\n"
+            "🌱 Donate diamonds to environmental NGOs\n"
+            "📊 Track your personal CO₂ impact\n"
+            "💬 Join 24-hour ride chat rooms\n"
+            "💳 Easy payments with QR codes\n\n"
+            "🎯 **Perfect for:** VESIT students, Tech employees, Daily commuters\n\n"
+            "Ready to start your eco-friendly journey? Let's get you set up! 🚀"
+        )
+        
         await update.message.reply_text(
-            "🌱 Welcome to EcoPool - Slay the Commute! 💅\n\n"
-            "I'm your AI carpooling buddy! I help you:\n"
-            "🚗 Find ridemates (Carpooling or Auto-rickshaw)\n"
-            "💎 Earn Carbon Crystals (diamonds)\n"
-            "🎁 Redeem rewards & trade diamonds\n"
-            "🌱 Donate to NGOs\n"
-            "📊 Track CO₂ savings\n\n"
-            "Please login or register to continue:",
-            reply_markup=reply_markup
+            welcome_msg,
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
         )
         
         return ConversationHandler.END
@@ -220,9 +238,17 @@ class CarpoolBot:
         user_id = update.effective_user.id
         
         if user_id not in user_sessions:
-            await update.message.reply_text(
-                "Please login first using /start"
+            friendly_msg = (
+                f"Hey {update.effective_user.first_name}! 👋\n\n"
+                "I'd love to help you with carpooling, but you need to be logged in first! \n\n"
+                "Just type /start to get started - it only takes a few seconds! 🚀\n\n"
+                "Once you're in, you can ask me things like:\n"
+                "• 'Find me a ride to VESIT'\n"
+                "• 'Show my diamond balance'\n"
+                "• 'What rewards are available?'\n\n"
+                "Ready to begin your eco-friendly journey? 🌱"
             )
+            await update.message.reply_text(friendly_msg)
             return
         
         # Show typing indicator
@@ -387,39 +413,45 @@ class CarpoolBot:
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show help message"""
         help_text = """
-🤖 EcoPool AI Assistant - Slay the Commute! 💅
+🤖 **EcoPool AI Assistant** - Your Smart Travel Companion! 💅
 
-I understand natural language! Just talk to me normally.
+🌟 **I understand natural language!** Just chat with me normally.
 
-📝 What I can do:
-• 🔍 Find ridemates (Carpooling or Auto)
-• 💬 Create 24-hour chat rooms
-• 💳 Handle payments with QR codes
-• 💎 Track your Carbon Crystals (diamonds)
-• 🎁 Show rewards marketplace
-• 💱 Help you trade diamonds
-• 🌱 Donate to NGOs
-• 📊 Track CO₂ savings
+🎯 **Core Features:**
+🔍 **Smart Ride Matching** - Find perfect ridemates
+💬 **24-Hour Chat Rooms** - Connect with your ride group
+💳 **Easy Payments** - QR code splitting & UPI integration
+💎 **Carbon Crystals** - Earn diamonds for eco-rides
+🎁 **Rewards System** - Redeem awesome prizes
+💱 **Diamond Trading** - Trade with other users
+🌱 **NGO Donations** - Support environmental causes
+📊 **CO₂ Impact** - Track your planet-saving progress
 
-💬 Example Messages:
-"Find me ridemates to VESIT"
-"Check my diamond balance"
-"Show rewards marketplace"
-"I want to donate to Green Earth"
-"How much CO₂ have I saved?"
+💬 **Try these natural messages:**
+• "Find me ridemates to VESIT tomorrow at 9 AM"
+• "Show me my active carpools"
+• "How many diamonds do I have?"
+• "What rewards can I get for 100 diamonds?"
+• "I want to donate to Green Earth Foundation"
+• "How much CO₂ have I saved this month?"
+• "Create a payment request for ₹50"
 
-⚡ Quick Commands:
-/search - Find ridemates
-/mycarpools - Active rides
-/diamonds - Check balance
-/marketplace - View rewards
-/trade - Trade diamonds
-/donate - Donate to NGOs
-/payment - Payment info
-/carbon - CO₂ stats
-/logout - Logout
+⚡ **Quick Commands:**
+/search - 🔍 Find ridemates instantly
+/mycarpools - 🚗 View your active rides
+/diamonds - 💎 Check your balance
+/marketplace - 🏪 Browse rewards
+/trade - 💱 Trade diamonds
+/donate - 🌱 Support NGOs
+/payment - 💳 Payment options
+/carbon - 📊 Your eco-impact
+/logout - 👋 Sign out
+
+🎉 **Pro tip:** The more you carpool, the more diamonds you earn!
+
+Questions? Just ask me anything! 🚀
         """
-        await update.message.reply_text(help_text)
+        await update.message.reply_text(help_text, parse_mode='Markdown')
     
     async def logout_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Logout user"""

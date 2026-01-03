@@ -118,7 +118,7 @@ class CarpoolAgent:
             return f"Error searching carpools: {str(e)}"
     
     def _offer_ride(self, input_str: str) -> str:
-        """Removed - not an Ola/Uber app\"\"\"
+        """Removed - not an Ola/Uber app"""
         return "This feature is not available. We're a carpooling community, not a ride-hailing service!"
     
     def _get_my_carpools(self, _: str = "") -> str:
