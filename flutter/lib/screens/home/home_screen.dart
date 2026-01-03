@@ -3,9 +3,12 @@ import 'package:animate_do/animate_do.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/animated_background.dart';
+import '../../services/auth_service.dart';
+import '../../models/user_model.dart';
 import '../rides/search_rides_screen.dart';
 import '../trips/create_trip_screen.dart';
 import '../trips/my_trips_screen.dart';
+import '../vehicles/register_vehicle_screen.dart';
 import '../messages/messages_screen.dart';
 import '../payments/payments_screen.dart';
 import '../settings/settings_screen.dart';
@@ -20,9 +23,38 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  final AuthService _authService = AuthService();
+  User? _currentUser;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = await _authService.getUser();
+    if (mounted) {
+      setState(() {
+        _currentUser = user;
+        _isLoading = false;
+      });
+    }
+  }
+
+  bool get _isDriver => _currentUser?.role == 'driver';
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: AppTheme.primaryOrange),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: _buildAppBar(),
       body: AnimatedBackground(
@@ -41,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: _buildBottomNavBar(),
-      floatingActionButton: _buildFAB(),
+      floatingActionButton: _isDriver ? _buildFAB() : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
@@ -100,7 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            _quickAccessItem(
+            if (_isDriver) _quickAccessItem(
               icon: FontAwesomeIcons.plus,
               label: 'Create Trip',
               color: AppTheme.ecoGreen,
@@ -108,6 +140,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const CreateTripScreen()),
+                );
+              },
+            ),
+            if (_isDriver) _quickAccessItem(
+              icon: FontAwesomeIcons.carRear,
+              label: 'Add Vehicle',
+              color: Colors.purple,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RegisterVehicleScreen()),
                 );
               },
             ),
