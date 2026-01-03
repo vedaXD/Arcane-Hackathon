@@ -49,9 +49,13 @@ class CarpoolBot:
         # Command handlers
         self.application.add_handler(CommandHandler('help', self.help_command))
         self.application.add_handler(CommandHandler('search', self.search_command))
-        self.application.add_handler(CommandHandler('offer', self.offer_command))
         self.application.add_handler(CommandHandler('mycarpools', self.mycarpools_command))
         self.application.add_handler(CommandHandler('rewards', self.rewards_command))
+        self.application.add_handler(CommandHandler('diamonds', self.diamonds_command))
+        self.application.add_handler(CommandHandler('trade', self.trade_command))
+        self.application.add_handler(CommandHandler('donate', self.donate_command))
+        self.application.add_handler(CommandHandler('marketplace', self.marketplace_command))
+        self.application.add_handler(CommandHandler('payment', self.payment_command))
         self.application.add_handler(CommandHandler('carbon', self.carbon_command))
         self.application.add_handler(CommandHandler('logout', self.logout_command))
         
@@ -71,11 +75,12 @@ class CarpoolBot:
             await update.message.reply_text(
                 f"Welcome back, {update.effective_user.first_name}! 👋\n\n"
                 "I'm your AI-powered carpooling assistant. Just tell me what you need:\n"
-                "• 'Find a ride to VESIT tomorrow'\n"
-                "• 'Show my carpools'\n"
-                "• 'How much CO₂ have I saved?'\n"
-                "• 'Offer my car for Chembur to BKC'\n\n"
-                "I'll understand and help you!"
+                "• 'Find ridemates to VESIT' (Carpooling or Auto)\n"
+                "• 'Show my active rides'\n"
+                "• 'Check my diamond balance'\n"
+                "• 'View rewards marketplace'\n"
+                "• 'How much CO₂ have I saved?'\n\n"
+                "Slay the commute, split the bills 💅"
             )
             return ConversationHandler.END
         
@@ -86,9 +91,13 @@ class CarpoolBot:
         reply_markup = InlineKeyboardMarkup(keyboard)
         
         await update.message.reply_text(
-            "🌱 Welcome to EcoPool Carpooling Bot!\n\n"
-            "I'm an AI agent that helps you find ridemates, offer rides, "
-            "track your carbon savings, and manage carpools - all through natural conversation!\n\n"
+            "🌱 Welcome to EcoPool - Slay the Commute! 💅\n\n"
+            "I'm your AI carpooling buddy! I help you:\n"
+            "🚗 Find ridemates (Carpooling or Auto-rickshaw)\n"
+            "💎 Earn Carbon Crystals (diamonds)\n"
+            "🎁 Redeem rewards & trade diamonds\n"
+            "🌱 Donate to NGOs\n"
+            "📊 Track CO₂ savings\n\n"
             "Please login or register to continue:",
             reply_markup=reply_markup
         )
@@ -112,7 +121,8 @@ class CarpoolBot:
             await query.edit_message_text(
                 "📝 Register\n\n"
                 "Please send your details in this format:\n"
-                "email@company.com password FullName OrganizationName"
+                "email@company.com password FullName\n\n"
+                "Note: Use your organization email (e.g., @techcorp.com) to auto-join your organization's carpooling network!"
             )
             return REGISTER
     
@@ -139,12 +149,13 @@ class CarpoolBot:
                 
                 await update.message.reply_text(
                     f"✅ Login successful!\n\n"
-                    f"Hi {result.get('name', 'there')}! I'm your AI carpooling assistant.\n\n"
+                    f"Hi {result.get('name', 'there')}! I'm your AI carpooling buddy.\n\n"
                     f"Try saying:\n"
-                    f"• 'Find me a ride to VESIT tomorrow at 9 AM'\n"
-                    f"• 'I want to offer my car for pooling'\n"
-                    f"• 'Show my carbon savings'\n\n"
-                    f"Just talk naturally - I'll understand!"
+                    f"• 'Find me ridemates to VESIT'\n"
+                    f"• 'Check my diamond balance'\n"
+                    f"• 'Show rewards marketplace'\n"
+                    f"• 'How much CO₂ have I saved?'\n\n"
+                    f"Slay the commute, split the bills 💅"
                 )
                 return ConversationHandler.END
             else:
@@ -236,20 +247,22 @@ class CarpoolBot:
             )
     
     async def search_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Quick search command"""
+        """Quick search command with mode selection"""
+        keyboard = [
+            [InlineKeyboardButton("🚗 Carpooling", callback_data='search_carpool')],
+            [InlineKeyboardButton("🛺 Auto Pooling", callback_data='search_auto')]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
         await update.message.reply_text(
-            "🔍 Search for Carpools\n\n"
-            "Just tell me where you want to go!\n\n"
-            "Example: 'Find me a ride from Chembur to VESIT tomorrow at 9 AM'"
+            "🔍 Find Ridemates\n\n"
+            "Choose your ride mode:\n"
+            "🚗 Carpooling - Slay the commute, split the bills 💅\n"
+            "🛺 Auto Pooling - Squad up & save that drip money 🛺",
+            reply_markup=reply_markup
         )
     
-    async def offer_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Quick offer ride command"""
-        await update.message.reply_text(
-            "🚗 Offer Your Ride\n\n"
-            "Tell me your route and I'll create a carpool!\n\n"
-            "Example: 'I can offer my car from Dadar to BKC tomorrow at 8:30 AM, 3 seats available'"
-        )
+
     
     async def mycarpools_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show user's carpools"""
@@ -275,6 +288,90 @@ class CarpoolBot:
         response = agent._get_rewards()
         await update.message.reply_text(response)
     
+    async def diamonds_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show diamond balance"""
+        user_id = update.effective_user.id
+        
+        if user_id not in user_sessions:
+            await update.message.reply_text("Please login first using /start")
+            return
+        
+        agent = user_sessions[user_id]['agent']
+        response = agent._get_diamond_balance()
+        await update.message.reply_text(response)
+    
+    async def marketplace_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Show rewards marketplace"""
+        user_id = update.effective_user.id
+        
+        if user_id not in user_sessions:
+            await update.message.reply_text("Please login first using /start")
+            return
+        
+        await update.message.reply_text(
+            "🎁 Rewards Marketplace\n\n"
+            "Mock Products Available:\n"
+            "🎧 Wireless Headphones - 450💎 (20% OFF)\n"
+            "☕ Coffee Voucher - 150💎 (FREE)\n"
+            "🎬 Movie Tickets - 300💎 (2 for 1)\n"
+            "💪 Gym Membership - 800💎 (30% OFF)\n"
+            "📚 Book Store Voucher - 400💎 (₹500 OFF)\n"
+            "💆 Spa Package - 650💎 (25% OFF)\n\n"
+            "Use the app to redeem! 📱"
+        )
+    
+    async def trade_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Trade diamonds"""
+        user_id = update.effective_user.id
+        
+        if user_id not in user_sessions:
+            await update.message.reply_text("Please login first using /start")
+            return
+        
+        await update.message.reply_text(
+            "💱 Trade Diamonds\n\n"
+            "Tell me who you want to send diamonds to:\n\n"
+            "Example: 'Send 50 diamonds to sarah@techcorp.com'"
+        )
+    
+    async def donate_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Donate to NGOs"""
+        user_id = update.effective_user.id
+        
+        if user_id not in user_sessions:
+            await update.message.reply_text("Please login first using /start")
+            return
+        
+        await update.message.reply_text(
+            "🌱 Donate to NGOs\n\n"
+            "Available Organizations:\n"
+            "🌳 Green Earth Foundation - 1 tree = 50💎\n"
+            "🌫️ Clean Air Initiative - 1 sensor = 200💎\n"
+            "☀️ Solar For All - 1 panel = 500💎\n"
+            "🌊 Ocean Cleanup - 1kg plastic = 100💎\n\n"
+            "Tell me how much you want to donate:\n"
+            "Example: 'Donate 100 diamonds to Green Earth'"
+        )
+    
+    async def payment_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Payment information"""
+        user_id = update.effective_user.id
+        
+        if user_id not in user_sessions:
+            await update.message.reply_text("Please login first using /start")
+            return
+        
+        await update.message.reply_text(
+            "💳 Payment Methods\n\n"
+            "After your ride completes:\n"
+            "💰 Wallet - Instant payment\n"
+            "📱 QR Code - Scan to pay with UPI\n"
+            "👤 Profile - View ridemate & copy UPI\n\n"
+            "You'll earn Carbon Crystals (💎) after every payment!\n"
+            "+150💎 per ride on average\n\n"
+            "Use the app for seamless payment! 📱"
+        )
+    
     async def carbon_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show carbon stats"""
         user_id = update.effective_user.id
@@ -290,32 +387,37 @@ class CarpoolBot:
     async def help_command(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Show help message"""
         help_text = """
-🤖 EcoPool AI Assistant Help
+🤖 EcoPool AI Assistant - Slay the Commute! 💅
 
-I'm an intelligent agent that understands natural language! Just talk to me normally.
+I understand natural language! Just talk to me normally.
 
 📝 What I can do:
-• Find carpools for you
-• Help you offer rides
-• Show your carpools
-• Track CO₂ savings
-• Manage rewards
+• 🔍 Find ridemates (Carpooling or Auto)
+• 💬 Create 24-hour chat rooms
+• 💳 Handle payments with QR codes
+• 💎 Track your Carbon Crystals (diamonds)
+• 🎁 Show rewards marketplace
+• 💱 Help you trade diamonds
+• 🌱 Donate to NGOs
+• 📊 Track CO₂ savings
 
 💬 Example Messages:
-"Find me a ride to VESIT tomorrow"
-"I want to offer my car for pooling"
-"Show my carbon savings"
-"What are my rewards?"
-"List my active carpools"
+"Find me ridemates to VESIT"
+"Check my diamond balance"
+"Show rewards marketplace"
+"I want to donate to Green Earth"
+"How much CO₂ have I saved?"
 
 ⚡ Quick Commands:
-/search - Search for rides
-/offer - Offer your ride
-/mycarpools - Your carpools
-/rewards - Your rewards
+/search - Find ridemates
+/mycarpools - Active rides
+/diamonds - Check balance
+/marketplace - View rewards
+/trade - Trade diamonds
+/donate - Donate to NGOs
+/payment - Payment info
 /carbon - CO₂ stats
 /logout - Logout
-/help - Show this message
         """
         await update.message.reply_text(help_text)
     

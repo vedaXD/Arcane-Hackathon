@@ -47,6 +47,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       
+      // Bypass authentication - go directly to home screen
+      await Future.delayed(const Duration(milliseconds: 500)); // Small delay for UX
+      
+      if (mounted) {
+        setState(() => _isLoading = false);
+        
+        // Navigate to home page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+      
+      /* Original authentication code - commented out for bypass
       try {
         final result = await _authService.login(
           username: _usernameController.text.trim(),
@@ -83,6 +97,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
           );
         }
       }
+      */
     }
   }
 
