@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:animate_do/animate_do.dart';
-import 'dart:ui' as ui;
 import '../../theme/app_theme.dart';
 
 class RouteMapScreen extends StatefulWidget {
@@ -12,58 +12,16 @@ class RouteMapScreen extends StatefulWidget {
 }
 
 class _RouteMapScreenState extends State<RouteMapScreen> {
-  GoogleMapController? _mapController;
+  MapController? _mapController;
   
   // Hardcoded locations
   static const LatLng _chemburStation = LatLng(19.0622, 72.8997);
   static const LatLng _vesitCollege = LatLng(19.0539, 72.9101);
   
-  final Set<Marker> _markers = {};
-  final Set<Polyline> _polylines = {};
-  
   @override
   void initState() {
     super.initState();
-    _initializeMap();
-  }
-
-  void _initializeMap() {
-    // Add pickup marker
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('pickup'),
-        position: _chemburStation,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        infoWindow: const InfoWindow(
-          title: 'Pickup',
-          snippet: 'Chembur Station',
-        ),
-      ),
-    );
-    
-    // Add dropoff marker
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('dropoff'),
-        position: _vesitCollege,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueOrange),
-        infoWindow: const InfoWindow(
-          title: 'Dropoff',
-          snippet: 'VESIT College',
-        ),
-      ),
-    );
-    
-    // Add simple route polyline
-    _polylines.add(
-      Polyline(
-        polylineId: const PolylineId('route'),
-        points: [_chemburStation, _vesitCollege],
-        color: AppTheme.ecoGreen,
-        width: 5,
-        patterns: [PatternItem.dash(30), PatternItem.gap(20)],
-      ),
-    );
+    _mapController = MapController();
   }
 
   @override
@@ -72,23 +30,56 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: LatLng(
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: LatLng(
                 (_chemburStation.latitude + _vesitCollege.latitude) / 2,
                 (_chemburStation.longitude + _vesitCollege.longitude) / 2,
               ),
-              zoom: 13.5,
+              initialZoom: 13.5,
+              minZoom: 5.0,
+              maxZoom: 18.0,
             ),
-            markers: _markers,
-            polylines: _polylines,
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
-            myLocationButtonEnabled: false,
-            myLocationEnabled: true,
-            zoomControlsEnabled: true,
-            mapType: MapType.normal,
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.ecopool.app',
+              ),
+              PolylineLayer(
+                polylines: [
+                  Polyline(
+                    points: [_chemburStation, _vesitCollege],
+                    color: AppTheme.ecoGreen,
+                    strokeWidth: 4,
+                  ),
+                ],
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: _chemburStation,
+                    width: 40,
+                    height: 40,
+                    child: Icon(
+                      Icons.location_on,
+                      color: AppTheme.ecoGreen,
+                      size: 40,
+                    ),
+                  ),
+                  Marker(
+                    point: _vesitCollege,
+                    width: 40,
+                    height: 40,
+                    child: Icon(
+                      Icons.location_on,
+                      color: AppTheme.primaryOrange,
+                      size: 40,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
           
           // Header with info

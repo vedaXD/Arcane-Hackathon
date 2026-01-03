@@ -20,6 +20,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _upiIdController = TextEditingController();
+  final _emergencyContactNameController = TextEditingController();
+  final _emergencyContactPhoneController = TextEditingController();
+  final _emergencyContactRelationController = TextEditingController();
   final _authService = AuthService();
   String _selectedGender = 'male';
   String? _faceImagePath;
@@ -53,6 +56,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _upiIdController.dispose();
+    _emergencyContactNameController.dispose();
+    _emergencyContactPhoneController.dispose();
+    _emergencyContactRelationController.dispose();
     _fadeController.dispose();
     super.dispose();
   }
@@ -492,6 +498,94 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                             ),
                           ),
                         ],
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Emergency Contact Section
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.red.shade300),
+                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.red.shade50,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.emergency, color: Colors.red),
+                            SizedBox(width: 12),
+                            Text(
+                              'Emergency Contact',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: Colors.red.shade700,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'This contact will be notified in case of emergency during rides',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        TextFormField(
+                          controller: _emergencyContactNameController,
+                          decoration: InputDecoration(
+                            labelText: 'Emergency Contact Name',
+                            prefixIcon: Icon(Icons.person, color: Colors.red),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Emergency contact name is required';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 12),
+                        TextFormField(
+                          controller: _emergencyContactPhoneController,
+                          decoration: InputDecoration(
+                            labelText: 'Emergency Contact Phone',
+                            prefixIcon: Icon(Icons.phone, color: Colors.red),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          keyboardType: TextInputType.phone,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Emergency contact phone is required';
+                            }
+                            if (value.length < 10) {
+                              return 'Phone number must be at least 10 digits';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 12),
+                        TextFormField(
+                          controller: _emergencyContactRelationController,
+                          decoration: InputDecoration(
+                            labelText: 'Relationship (e.g., Parent, Spouse)',
+                            prefixIcon: Icon(Icons.family_restroom, color: Colors.red),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Relationship is required';
+                            }
+                            return null;
+                          },
+                        ),
                       ],
                     ),
                   ),

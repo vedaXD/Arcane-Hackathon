@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:animate_do/animate_do.dart';
 import '../../theme/app_theme.dart';
 
@@ -11,27 +12,15 @@ class PickupLocationMapScreen extends StatefulWidget {
 }
 
 class _PickupLocationMapScreenState extends State<PickupLocationMapScreen> {
-  GoogleMapController? _mapController;
+  MapController? _mapController;
   
   // Hardcoded Chembur Station coordinates
   static const LatLng _chemburStation = LatLng(19.0622, 72.8997);
   
-  final Set<Marker> _markers = {};
-  
   @override
   void initState() {
     super.initState();
-    _markers.add(
-      Marker(
-        markerId: const MarkerId('pickup'),
-        position: _chemburStation,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-        infoWindow: const InfoWindow(
-          title: 'Chembur Station',
-          snippet: 'Pickup Location',
-        ),
-      ),
-    );
+    _mapController = MapController();
   }
 
   @override
@@ -44,19 +33,34 @@ class _PickupLocationMapScreenState extends State<PickupLocationMapScreen> {
       ),
       body: Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: const CameraPosition(
-              target: _chemburStation,
-              zoom: 15,
+          FlutterMap(
+            mapController: _mapController,
+            options: MapOptions(
+              initialCenter: _chemburStation,
+              initialZoom: 15.0,
+              minZoom: 5.0,
+              maxZoom: 18.0,
             ),
-            markers: _markers,
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
-            myLocationButtonEnabled: true,
-            myLocationEnabled: true,
-            zoomControlsEnabled: true,
-            mapType: MapType.normal,
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'com.ecopool.app',
+              ),
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: _chemburStation,
+                    width: 40,
+                    height: 40,
+                    child: Icon(
+                      Icons.location_on,
+                      color: AppTheme.ecoGreen,
+                      size: 40,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
           Positioned(
             bottom: 20,

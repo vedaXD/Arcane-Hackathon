@@ -147,6 +147,13 @@ class _RideChatRoomScreenState extends State<RideChatRoomScreen> {
           ],
         ),
         actions: [
+          // SOS Button
+          IconButton(
+            icon: Icon(Icons.warning, color: Colors.red),
+            onPressed: () {
+              _showSOSDialog();
+            },
+          ),
           if (!_showEndRideVoting)
             IconButton(
               icon: Icon(Icons.stop_circle_outlined),
@@ -321,6 +328,140 @@ class _RideChatRoomScreenState extends State<RideChatRoomScreen> {
         ),
       ),
     );
+  }
+
+  void _showSOSDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.red, size: 32),
+            SizedBox(width: 12),
+            Text(
+              'Emergency SOS',
+              style: TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'This will immediately notify:',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            SizedBox(height: 12),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.business, color: Colors.red.shade700, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(child: Text('Organization Security Team', style: TextStyle(fontWeight: FontWeight.w500))),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.family_restroom, color: Colors.red.shade700, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(child: Text('Your Emergency Contact', style: TextStyle(fontWeight: FontWeight.w500))),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, color: Colors.red.shade700, size: 18),
+                      SizedBox(width: 8),
+                      Expanded(child: Text('Current ride location & details', style: TextStyle(fontWeight: FontWeight.w500))),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Only use in genuine emergencies',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _triggerSOS();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: Text('Send SOS Alert'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _triggerSOS() {
+    // Mock SOS functionality
+    setState(() {
+      _messages.add({
+        'sender': 'System',
+        'message': '🚨 SOS Alert Triggered!\n\nNotifying:\n• Organization Security Team\n• Emergency Contact\n• Local Authorities\n\nStay safe! Help is on the way.',
+        'time': DateTime.now(),
+        'isSystem': true,
+      });
+    });
+
+    // Show confirmation
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.white),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text('SOS Alert sent! Authorities & emergency contact notified.'),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+
+    // Mock notifications (in real app, this would make API calls)
+    _sendSOSNotifications();
+  }
+
+  void _sendSOSNotifications() {
+    // Mock function - in real app would send notifications via API
+    print('📱 SMS sent to emergency contact: Emergency alert from ${widget.pickup} to ${widget.dropoff}');
+    print('🏢 Organization security notified with ride details and location');
+    print('📧 Email alert sent to organization authorities');
   }
 
   Widget _buildVoteChip(String name, bool voted) {
