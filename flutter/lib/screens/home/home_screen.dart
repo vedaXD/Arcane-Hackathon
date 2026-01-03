@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/animated_background.dart';
+import '../rides/search_rides_screen.dart';
+import '../trips/create_trip_screen.dart';
+import '../trips/my_trips_screen.dart';
+import '../messages/messages_screen.dart';
+import '../payments/payments_screen.dart';
+import '../settings/settings_screen.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,17 +25,19 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildQuickAccessBar(),
-            _buildUserStatsCard(),
-            _buildSustainabilityMetrics(),
-            _buildQuickActions(),
-            _buildRecentTrips(),
-            const SizedBox(height: 20),
-          ],
+      body: AnimatedBackground(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildQuickAccessBar(),
+              _buildUserStatsCard(),
+              _buildSustainabilityMetrics(),
+              _buildQuickActions(),
+              _buildRecentTrips(),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: _buildBottomNavBar(),
@@ -52,9 +62,17 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         Padding(
           padding: const EdgeInsets.only(right: 8.0),
-          child: CircleAvatar(
-            backgroundColor: AppTheme.lightOrange,
-            child: Icon(Icons.person, color: Colors.white),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SettingsScreen()),
+              );
+            },
+            child: CircleAvatar(
+              backgroundColor: AppTheme.lightOrange,
+              child: Icon(Icons.person, color: Colors.white),
+            ),
           ),
         ),
       ],
@@ -75,37 +93,66 @@ class _HomeScreenState extends State<HomeScreen> {
               icon: FontAwesomeIcons.car,
               label: 'Find Ride',
               color: AppTheme.primaryOrange,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SearchRidesScreen()),
+                );
+              },
             ),
             _quickAccessItem(
               icon: FontAwesomeIcons.plus,
               label: 'Create Trip',
               color: AppTheme.ecoGreen,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CreateTripScreen()),
+                );
+              },
             ),
             _quickAccessItem(
               icon: FontAwesomeIcons.clockRotateLeft,
               label: 'My Trips',
               color: AppTheme.info,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MyTripsScreen()),
+                );
+              },
             ),
             _quickAccessItem(
               icon: FontAwesomeIcons.solidMessage,
               label: 'Messages',
               color: AppTheme.warning,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MessagesScreen()),
+                );
+              },
             ),
             _quickAccessItem(
               icon: FontAwesomeIcons.wallet,
               label: 'Payments',
               color: AppTheme.success,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PaymentsScreen()),
+                );
+              },
             ),
             _quickAccessItem(
               icon: FontAwesomeIcons.trophy,
               label: 'Rewards',
               color: AppTheme.accentOrange,
-              onTap: () {},
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Rewards feature coming soon!')),
+                );
+              },
             ),
           ],
         ),
@@ -701,7 +748,25 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _navBarItem(IconData icon, String label, int index) {
     final isSelected = _selectedIndex == index;
     return InkWell(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () {
+        setState(() => _selectedIndex = index);
+        if (index == 1) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const SearchRidesScreen()),
+          );
+        } else if (index == 2) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MyTripsScreen()),
+          );
+        } else if (index == 3) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+        }
+      },
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -726,7 +791,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFAB() {
     return FloatingActionButton(
-      onPressed: () {},
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CreateTripScreen()),
+        );
+      },
       child: Icon(Icons.add_rounded, size: 32),
       elevation: 4,
     );
