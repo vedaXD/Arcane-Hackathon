@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/rotating_co2_logo.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -25,8 +26,55 @@ class ProfileScreen extends StatelessWidget {
               child: _buildProfileHeader(),
             ),
             SizedBox(height: 20),
+            // Animated CO2 Logo Section
             FadeInUp(
               delay: Duration(milliseconds: 200),
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 16),
+                padding: EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 20,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Your Environmental Impact',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.darkGray,
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    RotatingCO2Logo(
+                      size: 220,
+                      points: 1250,
+                      co2Saved: 12.5,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Keep up the great work!',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.mediumGray,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            FadeInUp(
+              delay: Duration(milliseconds: 400),
               child: _buildStatsSection(),
             ),
             SizedBox(height: 20),
