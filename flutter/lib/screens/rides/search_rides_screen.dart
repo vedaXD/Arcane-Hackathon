@@ -4,6 +4,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/radar_search_animation.dart';
 import '../../data/popular_routes.dart';
+import '../../services/trip_service.dart';
+import '../../services/auth_service.dart';
+import '../../models/trip_model.dart';
+import '../../models/user_model.dart';
 
 class SearchRidesScreen extends StatefulWidget {
   const SearchRidesScreen({super.key});
@@ -15,13 +19,34 @@ class SearchRidesScreen extends StatefulWidget {
 class _SearchRidesScreenState extends State<SearchRidesScreen> {
   final _fromController = TextEditingController();
   final _toController = TextEditingController();
+  final _tripService = TripService();
+  final _authService = AuthService();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
+  int _seatsNeeded = 1;
   bool _isSearching = false;
   bool _showResults = false;
   List<String> _fromSuggestions = [];
   List<String> _toSuggestions = [];
   bool _showPopularRoutes = true;
+  List<Trip> _searchResults = [];
+  String? _errorMessage;
+  User? _currentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    final user = await _authService.getUser();
+    if (mounted) {
+      setState(() {
+        _currentUser = user;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +152,7 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
     );
   }
 
-  void _startSearch() {
+  Future<void> _startSearch() async {
     if (_fromController.text.isEmpty || _toController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -141,7 +166,77 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
     setState(() {
       _isSearching = true;
       _showResults = false;
+      _errorMessage = null;
     });
+
+    try {
+      // Mock coordinates - in real app, use geocoding service
+      final result = await _tripService.searchTrips(
+        startLatitude: 19.1136,  // These should come from geocoding the location text
+        startLongitude: 72.8697,
+        endLatitude: 19.0596,
+        endLongitude: 72.8656,
+        seatsNeeded: _seatsNeeded,
+        departureTime: DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        ),
+      );
+
+      if (mounted) {
+        if (result['success']) {
+          List<Trip> allTrips = result['trips'] as List<Trip>;
+          
+          // Filter trips based on passenger gender and trip gender preference
+          List<Trip> filteredTrips = allTrips.where((trip) {
+            // If trip preference is 'any', show to everyone
+            if (trip.genderPreference == 'any') return true;
+            
+            // If user gender matches trip preference, show it
+            if (_currentUser?.gender != null && 
+                trip.genderPreference == _currentUser!.gender) {
+              return true;
+            }
+            
+            // Otherwise, hide it
+            return false;
+          }).toList();
+          
+          setState(() {
+            _searchResults = filteredTrips;
+            _isSearching = false;
+            _showResults = true;
+          });
+        } else {
+          setState(() {
+            _errorMessage = result['message'] ?? 'Search failed';
+            _isSearching = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(_errorMessage!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Error: $e';
+          _isSearching = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error searching for trips'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildSearchingInfo() {
@@ -235,7 +330,7 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '4 Rides Found',
+              '${_searchResults.length} Rides Found',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -247,6 +342,7 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
                 setState(() {
                   _isSearching = false;
                   _showResults = false;
+                  _searchResults.clear();
                 });
               },
               icon: Icon(Icons.search),
@@ -255,188 +351,220 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
           ],
         ),
         SizedBox(height: 16),
-        ..._buildMockResults(),
+        if (_searchResults.isEmpty)
+          Center(
+            child: Column(
+              children: [
+                SizedBox(height: 40),
+                Icon(Icons.inbox_outlined, size: 80, color: Colors.grey[400]),
+                SizedBox(height: 16),
+                Text(
+                  'No trips found matching your criteria',
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          )
+        else
+          ..._searchResults.map((trip) => _buildTripCard(trip)).toList(),
       ],
     );
   }
 
-  List<Widget> _buildMockResults() {
-    final rides = [
-      {
-        'driver': 'Sarah Johnson',
-        'rating': 4.9,
-        'time': '8:30 AM',
-        'price': '₹120',
-        'car': 'Honda City',
-        'seats': 2,
-        'matched': 95,
-      },
-      {
-        'driver': 'Mike Wilson',
-        'rating': 4.7,
-        'time': '8:45 AM',
-        'price': '₹100',
-        'car': 'Toyota Innova',
-        'seats': 3,
-        'matched': 88,
-      },
-      {
-        'driver': 'Priya Sharma',
-        'rating': 4.8,
-        'time': '9:00 AM',
-        'price': '₹110',
-        'car': 'Maruti Swift',
-        'seats': 1,
-        'matched': 92,
-      },
-      {
-        'driver': 'Rahul Kumar',
-        'rating': 4.6,
-        'time': '9:15 AM',
-        'price': '₹95',
-        'car': 'Hyundai i20',
-        'seats': 2,
-        'matched': 85,
-      },
-    ];
-
-    return rides.map((ride) {
-      return FadeInUp(
-        child: Container(
-          margin: EdgeInsets.only(bottom: 16),
-          padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppTheme.lightGray.withOpacity(0.5)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 25,
-                    backgroundColor: AppTheme.lightOrange,
-                    child: Icon(Icons.person, color: Colors.white),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          ride['driver'] as String,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.darkGray,
-                          ),
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(Icons.star, color: AppTheme.warning, size: 16),
-                            SizedBox(width: 4),
-                            Text(
-                              '${ride['rating']}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.darkGray,
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              ride['car'] as String,
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: AppTheme.mediumGray,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+  Widget _buildTripCard(Trip trip) {
+    return FadeInUp(
+      child: Container(
+        margin: EdgeInsets.only(bottom: 16),
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppTheme.lightGray.withOpacity(0.5)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 25,
+                  backgroundColor: AppTheme.lightOrange,
+                  child: Icon(Icons.person, color: Colors.white),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        ride['price'] as String,
+                        trip.driverName ?? 'Driver',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryOrange,
+                          color: AppTheme.darkGray,
                         ),
                       ),
+                      SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.directions_car, color: AppTheme.mediumGray, size: 16),
+                          SizedBox(width: 4),
+                          Text(
+                            trip.vehicleModel ?? 'Vehicle',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppTheme.mediumGray,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '₹${trip.pricePerSeat.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryOrange,
+                      ),
+                    ),
+                    Text(
+                      'per seat',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.mediumGray,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                Column(
+                  children: [
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.green,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    Container(
+                      width: 2,
+                      height: 30,
+                      color: Colors.grey[300],
+                    ),
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        'per seat',
+                        trip.startLocation,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 30),
+                      Text(
+                        trip.endLocation,
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            Divider(height: 1),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.event_seat, size: 18, color: AppTheme.mediumGray),
+                    SizedBox(width: 4),
+                    Text(
+                      '${trip.availableSeats} seats',
+                      style: TextStyle(color: AppTheme.mediumGray, fontSize: 13),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Icon(Icons.access_time, size: 18, color: AppTheme.mediumGray),
+                    SizedBox(width: 4),
+                    Text(
+                      '${trip.departureTime.hour}:${trip.departureTime.minute.toString().padLeft(2, '0')}',
+                      style: TextStyle(color: AppTheme.mediumGray, fontSize: 13),
+                    ),
+                  ],
+                ),
+                if (trip.genderPreference != 'any')
+                  Row(
+                    children: [
+                      Icon(
+                        trip.genderPreference == 'male' ? Icons.male : Icons.female,
+                        size: 18,
+                        color: AppTheme.primaryOrange,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        trip.genderPreference == 'male' ? 'Male' : 'Female',
                         style: TextStyle(
-                          fontSize: 10,
-                          color: AppTheme.mediumGray,
+                          color: AppTheme.primaryOrange,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _rideDetail(Icons.access_time, ride['time'] as String),
-                  _rideDetail(Icons.airline_seat_recline_normal, '${ride['seats']} seats'),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppTheme.ecoGreen.withOpacity(0.1),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Request trip
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Request trip feature coming soon')),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryOrange,
+                    shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text(
-                      '${ride['matched']}% match',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.ecoGreen,
-                      ),
-                    ),
                   ),
-                  ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    ),
-                    child: Text('Book'),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                  child: Text('Request', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ],
         ),
-      );
-    }).toList();
-  }
-
-  Widget _rideDetail(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppTheme.mediumGray),
-        SizedBox(width: 4),
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: 12,
-            color: AppTheme.mediumGray,
-          ),
-        ),
-      ],
+      ),
     );
   }
 

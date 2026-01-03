@@ -20,6 +20,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   TimeOfDay _selectedTime = TimeOfDay.now();
   String _vehicleType = 'Sedan';
   bool _acAvailable = true;
+  String _genderPreference = 'any';
   List<String> _fromSuggestions = [];
   List<String> _toSuggestions = [];
 
@@ -63,6 +64,11 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
               FadeInDown(
                 delay: const Duration(milliseconds: 300),
                 child: _buildPricingSection(),
+              ),
+              const SizedBox(height: 20),
+              FadeInDown(
+                delay: const Duration(milliseconds: 350),
+                child: _buildPreferencesSection(),
               ),
               const SizedBox(height: 30),
               FadeInUp(
@@ -368,6 +374,55 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 helperText: 'Suggested: ₹50-150 based on distance',
               ),
               validator: (value) => value?.isEmpty ?? true ? 'Required' : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreferencesSection() {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.people, color: AppTheme.primaryOrange),
+                const SizedBox(width: 8),
+                const Text(
+                  'Passenger Preferences',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _genderPreference,
+              decoration: InputDecoration(
+                labelText: 'Gender Preference',
+                prefixIcon: const Icon(Icons.person_outline),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: AppTheme.offWhite,
+              ),
+              items: const [
+                DropdownMenuItem(value: 'any', child: Text('No Preference')),
+                DropdownMenuItem(value: 'male', child: Text('Male Only')),
+                DropdownMenuItem(value: 'female', child: Text('Female Only')),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _genderPreference = value;
+                  });
+                }
+              },
             ),
           ],
         ),

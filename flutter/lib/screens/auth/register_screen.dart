@@ -20,6 +20,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
   String _selectedRole = 'passenger';
+  String _selectedGender = 'male';
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -66,6 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
           role: _selectedRole,
+          gender: _selectedGender,
           phoneNumber: _phoneController.text.trim().isNotEmpty 
               ? _phoneController.text.trim() 
               : null,
@@ -274,6 +276,11 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                   
                   const SizedBox(height: 16),
                   
+                  // Gender Selection
+                  _buildGenderSelector(),
+                  
+                  const SizedBox(height: 16),
+                  
                   // Password Field
                   _buildPasswordField(
                     controller: _passwordController,
@@ -336,7 +343,162 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       ],
     );
   }
-
+  Widget _buildGenderSelector() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Select your gender',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedGender = 'male'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _selectedGender == 'male' 
+                          ? AppTheme.primaryOrange.withOpacity(0.1)
+                          : Colors.grey[50],
+                      border: Border.all(
+                        color: _selectedGender == 'male' 
+                            ? AppTheme.primaryOrange
+                            : Colors.grey[300]!,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.male,
+                          color: _selectedGender == 'male' 
+                              ? AppTheme.primaryOrange
+                              : Colors.grey[600],
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Male',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: _selectedGender == 'male' 
+                                ? AppTheme.primaryOrange
+                                : Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedGender = 'female'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _selectedGender == 'female' 
+                          ? AppTheme.primaryOrange.withOpacity(0.1)
+                          : Colors.grey[50],
+                      border: Border.all(
+                        color: _selectedGender == 'female' 
+                            ? AppTheme.primaryOrange
+                            : Colors.grey[300]!,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.female,
+                          color: _selectedGender == 'female' 
+                              ? AppTheme.primaryOrange
+                              : Colors.grey[600],
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Female',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: _selectedGender == 'female' 
+                                ? AppTheme.primaryOrange
+                                : Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _selectedGender = 'other'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: _selectedGender == 'other' 
+                          ? AppTheme.primaryOrange.withOpacity(0.1)
+                          : Colors.grey[50],
+                      border: Border.all(
+                        color: _selectedGender == 'other' 
+                            ? AppTheme.primaryOrange
+                            : Colors.grey[300]!,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.person_outline,
+                          color: _selectedGender == 'other' 
+                              ? AppTheme.primaryOrange
+                              : Colors.grey[600],
+                          size: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Other',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: _selectedGender == 'other' 
+                                ? AppTheme.primaryOrange
+                                : Colors.grey[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
