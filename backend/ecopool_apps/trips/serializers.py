@@ -36,7 +36,7 @@ class TripCreateSerializer(serializers.ModelSerializer):
         validated_data['driver'] = self.context['request'].user
         # If no vehicle provided, try to use user's first vehicle
         if not validated_data.get('vehicle'):
-            first_vehicle = Vehicle.objects.filter(owner=self.context['request'].user).first()
+            first_vehicle = Vehicle.objects.filter(driver=self.context['request'].user).first()
             if first_vehicle:
                 validated_data['vehicle'] = first_vehicle
         return super().create(validated_data)

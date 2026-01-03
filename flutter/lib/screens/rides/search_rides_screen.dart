@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import '../../theme/app_theme.dart';
 import '../../widgets/radar_search_animation.dart';
+import '../../widgets/map_widget.dart';
 import '../../data/popular_routes.dart';
 import '../../services/trip_service.dart';
 import '../../services/auth_service.dart';
@@ -501,6 +503,36 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
               ],
             ),
             SizedBox(height: 16),
+            // Map showing route
+            MapWidget(
+              center: LatLng(
+                (trip.startLatitude + trip.endLatitude) / 2,
+                (trip.startLongitude + trip.endLongitude) / 2,
+              ),
+              zoom: 12,
+              height: 150,
+              showControls: false,
+              markers: [
+                createCustomMarker(
+                  point: LatLng(trip.startLatitude, trip.startLongitude),
+                  child: pickupMarker(),
+                ),
+                createCustomMarker(
+                  point: LatLng(trip.endLatitude, trip.endLongitude),
+                  child: dropoffMarker(),
+                ),
+              ],
+              polylines: [
+                createRoutePolyline(
+                  points: [
+                    LatLng(trip.startLatitude, trip.startLongitude),
+                    LatLng(trip.endLatitude, trip.endLongitude),
+                  ],
+                  color: AppTheme.primaryOrange,
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
             Divider(height: 1),
             SizedBox(height: 12),
             Row(
@@ -546,12 +578,7 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
                     ],
                   ),
                 ElevatedButton(
-                  onPressed: () {
-                    // TODO: Request trip
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Request trip feature coming soon')),
-                    );
-                  },
+                  onPressed: () => _showRequestDialog(trip),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryOrange,
                     shape: RoundedRectangleBorder(
@@ -1265,5 +1292,249 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
         fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
       ),
     );
+  }
+
+  void _showRequestDialog(Trip trip) {
+    int seatsToRequest = 1;
+    final messageController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Row(
+            children: [
+              Icon(Icons.send, color: AppTheme.primaryOrange),
+              SizedBox(width: 12),
+              Text('Request Trip'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'From: ${trip.startLocation}',
+                style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+              ),
+              Text(
+                'To: ${trip.endLocation}',
+                style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Number of seats',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 8),
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.remove_circle_outline),
+                    onPressed: seatsToRequest > 1
+                        ? () => setState(() => seatsToRequest--)
+                        : null,
+                  ),
+                  Text(
+                    '$seatsToRequest',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.primaryOrange,
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.add_circle_outline),
+                    onPressed: seatsToRequest < trip.availableSeats
+                        ? () => setState(() => seatsToRequest++)
+                        : null,
+                  ),
+                  Text(
+                    'of ${trip.availableSeats} available',
+                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: messageController,
+                decoration: InputDecoration(
+                  labelText: 'Message (optional)',
+                  hintText: 'Any special requests?',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: Icon(Icons.message_outlined),
+                ),
+                maxLines: 3,
+              ),
+              SizedBox(height: 12),
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppTheme.ecoGreen.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: AppTheme.ecoGreen),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Total: ₹${(trip.pricePerSeat * seatsToRequest).toStringAsFixed(0)}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.ecoGreen,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _handleTripRequest(
+                  trip,
+                  seatsToRequest,
+                  messageController.text,
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryOrange,
+              ),
+              child: Text('Send Request', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleTripRequest(
+    Trip trip,
+    int seatsRequested,
+    String message,
+  ) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: AppTheme.primaryOrange),
+                SizedBox(height: 16),
+                Text('Sending request...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final result = await _tripService.requestTrip(
+        tripId: trip.id,
+        seatsRequested: seatsRequested,
+        message: message.isNotEmpty ? message : null,
+      );
+
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+
+        if (result['success']) {
+          // Show success dialog
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.green, size: 28),
+                  SizedBox(width: 12),
+                  Text('Request Sent!'),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Your trip request has been sent to the driver.'),
+                  SizedBox(height: 12),
+                  Text(
+                    'You requested $seatsRequested seat(s)',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  Text(
+                    'Driver: ${trip.driverName}',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                  SizedBox(height: 12),
+                  Container(
+                    padding: EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: AppTheme.info.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'You will be notified when the driver responds.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.info,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryOrange,
+                  ),
+                  child: Text('OK', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          );
+        } else {
+          // Show error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Failed to send request'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
