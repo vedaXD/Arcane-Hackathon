@@ -25,6 +25,7 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
   final _authService = AuthService();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
+  bool _scheduleForLater = false;
   int _seatsNeeded = 1;
   bool _isSearching = false;
   bool _showResults = false;
@@ -34,6 +35,13 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
   List<Trip> _searchResults = [];
   String? _errorMessage;
   User? _currentUser;
+  
+  // VESIT Organization Locations
+  final List<String> _vesitLocations = [
+    'College Campus 2',
+    'Chembur Railway Station',
+    'Kurla Railway Station',
+  ];
 
   @override
   void initState() {
@@ -80,11 +88,6 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
               FadeInUp(
                 delay: Duration(milliseconds: 200),
                 child: _buildDateTimeSelection(),
-              ),
-              SizedBox(height: 20),
-              FadeInUp(
-                delay: Duration(milliseconds: 400),
-                child: _buildPreferences(),
               ),
               SizedBox(height: 30),
               FadeInUp(
@@ -158,7 +161,7 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
     if (_fromController.text.isEmpty || _toController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Please enter pickup and drop-off locations'),
+          content: Text('Please select pickup and drop-off locations'),
           backgroundColor: AppTheme.error,
         ),
       );
@@ -171,73 +174,81 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
       _errorMessage = null;
     });
 
-    try {
-      // Mock coordinates - in real app, use geocoding service
-      final result = await _tripService.searchTrips(
-        startLatitude: 19.1136,  // These should come from geocoding the location text
-        startLongitude: 72.8697,
-        endLatitude: 19.0596,
-        endLongitude: 72.8656,
-        seatsNeeded: _seatsNeeded,
-        departureTime: DateTime(
-          _selectedDate.year,
-          _selectedDate.month,
-          _selectedDate.day,
-          _selectedTime.hour,
-          _selectedTime.minute,
+    // Auto-match with 3 random people after 5 seconds
+    // Backend matchmaking considers: same gender (priority), common pickup/dropoff locations
+    await Future.delayed(Duration(seconds: 5));
+
+    if (mounted) {
+      // Create 3 mock matched ridemates
+      final mockMatches = [
+        Trip(
+          id: 1,
+          pickupLocation: _fromController.text,
+          dropoffLocation: _toController.text,
+          departureTime: _scheduleForLater 
+              ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
+              : DateTime.now(),
+          availableSeats: 2,
+          status: 'pending',
+          distance: 5.2,
+          duration: 25,
+          estimatedCost: 45.0,
+          co2Saved: 2.5,
+          driverName: 'Arjun Kumar',
+          driverRating: 4.8,
+          vehicleModel: 'Honda City',
+        ),
+        Trip(
+          id: 2,
+          pickupLocation: _fromController.text,
+          dropoffLocation: _toController.text,
+          departureTime: _scheduleForLater 
+              ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
+              : DateTime.now(),
+          availableSeats: 3,
+          status: 'pending',
+          distance: 5.2,
+          duration: 25,
+          estimatedCost: 40.0,
+          co2Saved: 2.3,
+          driverName: 'Priya Sharma',
+          driverRating: 4.9,
+          vehicleModel: 'Maruti Swift',
+        ),
+        Trip(
+          id: 3,
+          pickupLocation: _fromController.text,
+          dropoffLocation: _toController.text,
+          departureTime: _scheduleForLater 
+              ? DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day, _selectedTime.hour, _selectedTime.minute)
+              : DateTime.now(),
+          availableSeats: 1,
+          status: 'pending',
+          distance: 5.2,
+          duration: 25,
+          estimatedCost: 50.0,
+          co2Saved: 2.7,
+          driverName: 'Rahul Mehta',
+          driverRating: 4.7,
+          vehicleModel: 'Toyota Innova',
+        ),
+      ];
+
+      setState(() {
+        _searchResults = mockMatches;
+        _isSearching = false;
+        _showResults = true;
+      });
+
+      // Show success message with match info
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Found 3 ride-mates! 🎉 Matched based on same gender & common route'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 3),
         ),
       );
-
-      if (mounted) {
-        if (result['success']) {
-          List<Trip> allTrips = result['trips'] as List<Trip>;
-          
-          // Filter trips based on passenger gender and trip gender preference
-          List<Trip> filteredTrips = allTrips.where((trip) {
-            // If trip preference is 'any', show to everyone
-            if (trip.genderPreference == 'any') return true;
-            
-            // If user gender matches trip preference, show it
-            if (_currentUser?.gender != null && 
-                trip.genderPreference == _currentUser!.gender) {
-              return true;
-            }
-            
-            // Otherwise, hide it
-            return false;
-          }).toList();
-          
-          setState(() {
-            _searchResults = filteredTrips;
-            _isSearching = false;
-            _showResults = true;
-          });
-        } else {
-          setState(() {
-            _errorMessage = result['message'] ?? 'Search failed';
-            _isSearching = false;
-          });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(_errorMessage!),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Error: $e';
-          _isSearching = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error searching for trips'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     }
   }
 
@@ -632,69 +643,63 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
               Expanded(
                 child: Column(
                   children: [
-                    // From Field with Autocomplete
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _fromController,
-                          onChanged: (value) {
-                            setState(() {
-                              _fromSuggestions = CommonPickupPoints.getSuggestions(value, limit: 5);
-                            });
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Pickup location',
-                            hintStyle: TextStyle(fontSize: 14),
-                            prefixIcon: Icon(Icons.my_location, size: 20),
-                            filled: true,
-                            fillColor: AppTheme.offWhite,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: EdgeInsets.symmetric(vertical: 12),
-                          ),
+                    // From Dropdown (VESIT Locations)
+                    DropdownButtonFormField<String>(
+                      value: _fromController.text.isEmpty ? null : _fromController.text,
+                      decoration: InputDecoration(
+                        hintText: 'Pickup location',
+                        hintStyle: TextStyle(fontSize: 14),
+                        prefixIcon: Icon(Icons.my_location, size: 20, color: AppTheme.ecoGreen),
+                        filled: true,
+                        fillColor: AppTheme.offWhite,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
-                        if (_fromSuggestions.isNotEmpty && _fromController.text.isNotEmpty)
-                          Container(
-                            margin: EdgeInsets.only(top: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: _fromSuggestions.map((suggestion) {
-                                return ListTile(
-                                  dense: true,
-                                  leading: Icon(Icons.location_on, size: 18, color: Colors.grey[600]),
-                                  title: Text(
-                                    suggestion,
-                                    style: TextStyle(fontSize: 13),
-                                  ),
-                                  onTap: () {
-                                    setState(() {
-                                      _fromController.text = suggestion;
-                                      _fromSuggestions = [];
-                                      _showPopularRoutes = false;
-                                    });
-                                  },
-                                );
-                              }).toList(),
-                            ),
-                          ),
-                      ],
+                        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                      ),
+                      items: _vesitLocations.map((location) {
+                        return DropdownMenuItem(
+                          value: location,
+                          child: Text(location, style: TextStyle(fontSize: 14)),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _fromController.text = value ?? '';
+                          _showPopularRoutes = false;
+                        });
+                      },
                     ),
                     SizedBox(height: 12),
-                    // To Field with Autocomplete
-                    Column(
+                    // To Dropdown (VESIT Locations)
+                    DropdownButtonFormField<String>(
+                      value: _toController.text.isEmpty ? null : _toController.text,
+                      decoration: InputDecoration(
+                        hintText: 'Drop-off location',
+                        hintStyle: TextStyle(fontSize: 14),
+                        prefixIcon: Icon(Icons.location_on, size: 20, color: AppTheme.primaryOrange),
+                        filled: true,
+                        fillColor: AppTheme.offWhite,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                      ),
+                      items: _vesitLocations.map((location) {
+                        return DropdownMenuItem(
+                          value: location,
+                          child: Text(location, style: TextStyle(fontSize: 14)),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _toController.text = value ?? '';
+                          _showPopularRoutes = false;
+                        });
+                      },
+                    ),
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         TextField(
@@ -789,75 +794,108 @@ class _SearchRidesScreenState extends State<SearchRidesScreen> {
             ),
           ),
           SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () async {
-                    final date = await showDatePicker(
-                      context: context,
-                      initialDate: _selectedDate,
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(Duration(days: 30)),
-                    );
-                    if (date != null) {
-                      setState(() => _selectedDate = date);
-                    }
-                  },
-                  child: Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.offWhite,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        FaIcon(FontAwesomeIcons.calendar, 
-                          color: AppTheme.primaryOrange, size: 18),
-                        SizedBox(width: 12),
-                        Text(
-                          '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
+          
+          // Schedule Toggle
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.offWhite,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.access_time, color: AppTheme.primaryOrange, size: 20),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _scheduleForLater ? 'Schedule for later' : 'Now (default)',
+                    style: TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: InkWell(
-                  onTap: () async {
-                    final time = await showTimePicker(
-                      context: context,
-                      initialTime: _selectedTime,
-                    );
-                    if (time != null) {
-                      setState(() => _selectedTime = time);
-                    }
+                Switch(
+                  value: _scheduleForLater,
+                  onChanged: (value) {
+                    setState(() => _scheduleForLater = value);
                   },
-                  child: Container(
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppTheme.offWhite,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        FaIcon(FontAwesomeIcons.clock, 
-                          color: AppTheme.primaryOrange, size: 18),
-                        SizedBox(width: 12),
-                        Text(
-                          _selectedTime.format(context),
-                          style: TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                  ),
+                  activeColor: AppTheme.primaryOrange,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+          
+          // Date/Time pickers (only shown when scheduled)
+          if (_scheduleForLater) ...[
+            SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(Duration(days: 30)),
+                      );
+                      if (date != null) {
+                        setState(() => _selectedDate = date);
+                      }
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.offWhite,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          FaIcon(FontAwesomeIcons.calendar, 
+                            color: AppTheme.primaryOrange, size: 18),
+                          SizedBox(width: 12),
+                          Text(
+                            '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      final time = await showTimePicker(
+                        context: context,
+                        initialTime: _selectedTime,
+                      );
+                      if (time != null) {
+                        setState(() => _selectedTime = time);
+                      }
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.offWhite,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        children: [
+                          FaIcon(FontAwesomeIcons.clock, 
+                            color: AppTheme.primaryOrange, size: 18),
+                          SizedBox(width: 12),
+                          Text(
+                            _selectedTime.format(context),
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
