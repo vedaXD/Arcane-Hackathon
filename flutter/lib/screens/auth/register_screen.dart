@@ -19,7 +19,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
-  String _selectedRole = 'passenger';
   String _selectedGender = 'male';
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -66,7 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           passwordConfirm: _confirmPasswordController.text,
           firstName: _firstNameController.text.trim(),
           lastName: _lastNameController.text.trim(),
-          role: _selectedRole,
+          role: 'passenger',
           gender: _selectedGender,
           phoneNumber: _phoneController.text.trim().isNotEmpty 
               ? _phoneController.text.trim() 
@@ -268,11 +267,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                     keyboardType: TextInputType.phone,
                     validator: null,
                   ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Role Selection
-                  _buildRoleSelector(),
                   
                   const SizedBox(height: 16),
                   

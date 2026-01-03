@@ -16,9 +16,24 @@ class Trip(models.Model):
         ('male', 'Male Only'),
         ('female', 'Female Only'),
     ]
+    
+    TRIP_TYPE_CHOICES = [
+        ('offering', 'Offering Ride'),  # Has vehicle, offering seats
+        ('seeking', 'Seeking Ride'),    # No vehicle, looking for ride-mates for auto/public transport
+    ]
+    
+    TRANSPORT_MODE_CHOICES = [
+        ('car', 'Car'),
+        ('bike', 'Bike'),
+        ('auto', 'Auto Rickshaw'),
+        ('public', 'Public Transport'),
+        ('any', 'Any Mode'),
+    ]
 
     driver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='driver_trips')
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='trips')
+    vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name='trips', null=True, blank=True)
+    trip_type = models.CharField(max_length=20, choices=TRIP_TYPE_CHOICES, default='offering')
+    transport_mode = models.CharField(max_length=20, choices=TRANSPORT_MODE_CHOICES, default='car')
     start_location = models.CharField(max_length=255)
     start_latitude = models.DecimalField(max_digits=10, decimal_places=7)
     start_longitude = models.DecimalField(max_digits=10, decimal_places=7)
