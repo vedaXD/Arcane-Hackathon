@@ -29,7 +29,7 @@ class User(AbstractUser):
         ('prefer_not_to_say', 'Prefer not to say'),
     ]
 
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='users')
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name='users', null=True, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='passenger')
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES, blank=True, null=True)
