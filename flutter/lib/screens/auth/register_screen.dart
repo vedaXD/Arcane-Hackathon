@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:routeopt/theme/app_theme.dart';
 import 'package:routeopt/services/auth_service.dart';
-import 'package:routeopt/screens/auth/otp_verification_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -21,8 +20,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _confirmPasswordController = TextEditingController();
   final _authService = AuthService();
   String _selectedGender = 'male';
-  String? _detectedOrganization;
-  bool _showOrganizationDetection = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -57,187 +54,6 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   }
 
   Future<void> _handleRegister() async {
-    if (_formKey.currentState!.validate()) {
-      // First detect organization from email domain
-      _detectOrganization();
-    }
-  }
-  
-  void _detectOrganization() {
-    final email = _emailController.text.trim().toLowerCase();
-    final domain = email.split('@').length > 1 ? email.split('@')[1] : '';
-    
-    // Domain to organization mapping
-    final Map<String, String> domainMap = {
-      'ves.ac.in': 'VESIT College Mumbai',
-      'vesit.edu.in': 'VESIT College Mumbai',
-      'techcorp.com': 'Tech Corp',
-      'google.com': 'Google India',
-      'microsoft.com': 'Microsoft India',
-      'amazon.in': 'Amazon India',
-      'infosys.com': 'Infosys',
-      'tcs.com': 'Tata Consultancy Services',
-      'wipro.com': 'Wipro',
-      'iitb.ac.in': 'IIT Bombay',
-      'iitd.ac.in': 'IIT Delhi',
-      'iisc.ac.in': 'IISc Bangalore',
-      'bits-pilani.ac.in': 'BITS Pilani',
-    };
-    
-    if (domainMap.containsKey(domain)) {
-      setState(() {
-        _detectedOrganization = domainMap[domain];
-        _showOrganizationDetection = true;
-      });
-      _showOrganizationConfirmation();
-    } else {
-      // No organization detected, proceed with registration
-      _proceedToOTP();
-    }
-  }
-  
-  void _showOrganizationConfirmation() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.business,
-                color: Colors.green[700],
-                size: 28,
-              ),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Text(
-                'Organization Found!',
-                style: TextStyle(fontSize: 20),
-              ),
-            ),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'We detected that your email belongs to:',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryOrange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppTheme.primaryOrange.withOpacity(0.3),
-                  width: 2,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _detectedOrganization!,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryOrange,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Domain: ${_emailController.text.split('@')[1]}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'You\'ll be added to this organization\'s carpooling network and matched with colleagues.',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              setState(() {
-                _detectedOrganization = null;
-                _showOrganizationDetection = false;
-              });
-            },
-            child: Text(
-              'Cancel',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _proceedToOTP();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.primaryOrange,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: const Text(
-              'Confirm & Continue',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _proceedToOTP() {
-    // Navigate to OTP verification screen
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OTPVerificationScreen(
-          email: _emailController.text.trim(),
-          organizationName: _detectedOrganization ?? 'EcoPool Community',
-        ),
-      ),
-    );
-  }
-
-  Future<void> _handleRegisterOriginal() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       
@@ -336,7 +152,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       }
     }
   }
-
+  
   String? _validateEmail(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please enter your email';

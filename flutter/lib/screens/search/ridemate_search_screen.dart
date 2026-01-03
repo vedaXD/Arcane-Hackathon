@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
-import 'dart:math' as math;
 
 class RideMateSearchScreen extends StatefulWidget {
   const RideMateSearchScreen({Key? key}) : super(key: key);
@@ -237,7 +236,7 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
             delay: const Duration(milliseconds: 300),
             child: _buildRideOption(
               mode: 'auto',
-              icon: Icons.three_wheeler,
+              icon: Icons.local_taxi,
               title: 'Auto Pooling',
               tagline: 'Squad up & save that drip money 🛺',
               gradient: [Colors.orange.shade400, Colors.deepOrange.shade600],
@@ -473,7 +472,7 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
                     ],
                   ),
                   child: Icon(
-                    _selectedMode == 'auto' ? Icons.three_wheeler : Icons.directions_car,
+                    _selectedMode == 'auto' ? Icons.local_taxi : Icons.directions_car,
                     size: 60,
                     color: _selectedMode == 'auto' ? Colors.orange : Colors.green,
                   ),

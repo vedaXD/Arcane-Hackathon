@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:routeopt/theme/app_theme.dart';
 import 'package:routeopt/screens/home/home_screen.dart';
 import 'package:routeopt/screens/auth/register_screen.dart';
-import 'package:routeopt/services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +14,6 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
   bool _obscurePassword = true;
   bool _isLoading = false;
   late AnimationController _fadeController;

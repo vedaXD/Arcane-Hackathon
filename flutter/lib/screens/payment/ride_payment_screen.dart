@@ -20,7 +20,6 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _isPaying = false;
-  bool _paymentComplete = false;
 
   @override
   void initState() {
@@ -42,7 +41,6 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
       if (mounted) {
         setState(() {
           _isPaying = false;
-          _paymentComplete = true;
         });
         
         // Show success and award diamonds
