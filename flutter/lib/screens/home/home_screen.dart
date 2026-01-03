@@ -7,6 +7,7 @@ import '../../services/auth_service.dart';
 import '../../models/user_model.dart';
 import '../rides/search_rides_screen.dart';
 import '../search/ridemate_search_screen.dart';
+import '../rewards/rewards_screen.dart';
 import '../trips/create_trip_screen.dart';
 import '../trips/my_trips_screen.dart';
 import '../vehicles/register_vehicle_screen.dart';
@@ -87,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Icon(Icons.route_rounded, color: AppTheme.primaryOrange, size: 28),
           const SizedBox(width: 8),
-          const Text('EcoPool', style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text('RouteOpt', style: TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
       actions: [
@@ -152,14 +153,17 @@ class _HomeScreenState extends State<HomeScreen> {
           padding: EdgeInsets.symmetric(horizontal: 16),
           children: [
             _quickAccessItem(
-              icon: FontAwesomeIcons.car,
-              label: 'Find Ride',
-              color: AppTheme.primaryOrange,
+              icon: FontAwesomeIcons.gift,
+              label: 'Rewards',
+              color: Colors.purple,
               onTap: () {
-                _showModeSelectionDialog();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RewardsScreen()),
+                );
               },
             ),
-            if (_isDriver) _quickAccessItem(
+            _quickAccessItem(
               icon: FontAwesomeIcons.plus,
               label: 'Create Trip',
               color: AppTheme.ecoGreen,
@@ -170,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            if (_isDriver) _quickAccessItem(
+            _quickAccessItem(
               icon: FontAwesomeIcons.carRear,
               label: 'Add Vehicle',
               color: Colors.purple,
@@ -232,10 +236,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCarbonSavedCard() {
     return FadeInUp(
       duration: const Duration(milliseconds: 500),
-      child: Container(
-        height: 220,
-        child: PageView(
-          children: [
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          height: 190,
+          child: PageView(
+            children: [
             // Slide 1: Carbon Saved
             _buildCarouselCard(
               icon: Icons.eco,
@@ -275,6 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
@@ -288,7 +295,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -306,43 +313,45 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: Colors.white, size: 32),
-              SizedBox(width: 12),
+              Icon(icon, color: Colors.white, size: 24),
+              SizedBox(width: 8),
               Text(
                 title,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Text(
             mainValue,
             style: TextStyle(
               color: Colors.white,
-              fontSize: 48,
+              fontSize: 38,
               fontWeight: FontWeight.bold,
               letterSpacing: -1,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             subtitle,
             style: TextStyle(
               color: Colors.white.withOpacity(0.9),
-              fontSize: 14,
+              fontSize: 12,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(12),
@@ -351,7 +360,7 @@ class _HomeScreenState extends State<HomeScreen> {
               tagline,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.95),
-                fontSize: 14,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -376,7 +385,7 @@ class _HomeScreenState extends State<HomeScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const SearchRidesScreen()),
+                MaterialPageRoute(builder: (context) => const RideMateSearchScreen()),
               );
             },
           ),
@@ -389,16 +398,10 @@ class _HomeScreenState extends State<HomeScreen> {
               colors: [AppTheme.info, AppTheme.info.withOpacity(0.7)],
             ),
             onTap: () {
-              if (_isDriver) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CreateTripScreen()),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Only drivers can offer rides')),
-                );
-              }
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CreateTripScreen()),
+              );
             },
           ),
         ],

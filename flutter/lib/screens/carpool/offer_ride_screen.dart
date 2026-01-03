@@ -342,7 +342,7 @@ class _OfferRideScreenState extends State<OfferRideScreen> {
           children: [
             Row(
               children: [
-                Icon(Icons.directions_car, color: AppTheme.primaryOrange),
+                Icon(Icons.directions_car, color: AppTheme.ecoGreen),
                 const SizedBox(width: 8),
                 const Text(
                   'Vehicle Details',

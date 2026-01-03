@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import '../rides/active_ride_screen.dart';
+import '../rides/ride_chat_room_screen.dart';
+import 'pickup_location_map_screen.dart';
+import 'dropoff_location_map_screen.dart';
 
 class RideMateSearchScreen extends StatefulWidget {
   final String? initialMode;
@@ -34,7 +37,7 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
   @override
   void initState() {
     super.initState();
-    _selectedMode = widget.initialMode; // Set initial mode from parameter
+    _selectedMode = widget.initialMode ?? 'auto'; // Default to auto mode
     _radialController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
@@ -74,7 +77,7 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
     _pulseController.repeat(reverse: true);
 
     if (mode == 'auto') {
-      // AUTO-RICKSHAW POOLING: Match with 3 people going to SAME destination
+      // AUTO-RICKSHAW POOLING: Match with 2 others (3 total including you)
       // Backend matchmaking: same gender (priority) + exact same route
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) {
@@ -100,21 +103,6 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
               'distance': '1.2km away',
               'avatar': 'P',
               'gender': 'Female',
-              'location': '$_selectedPickup → $_selectedDropoff',
-            });
-          });
-        }
-      });
-
-      Future.delayed(const Duration(milliseconds: 5000), () {
-        if (mounted) {
-          setState(() {
-            _foundRidemates.add({
-              'name': 'Rahul M.',
-              'rating': 4.7,
-              'distance': '800m away',
-              'avatar': 'R',
-              'gender': 'Male',
               'location': '$_selectedPickup → $_selectedDropoff',
             });
           });
@@ -204,12 +192,12 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Matched with ${_foundRidemates.length} people!',
+                'Matched with ${_foundRidemates.length} others!',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 12),
               Text(
-                'Same destination, same time 🛺',
+                '3 people total · Same destination 🛺',
                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
               SizedBox(height: 20),
@@ -256,14 +244,16 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context); // Close dialog
-                // Navigate to active ride screen
+                // Navigate to chat room screen
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ActiveRideScreen(
+                    builder: (context) => RideChatRoomScreen(
                       mode: 'auto',
                       pickup: _selectedPickup!,
                       dropoff: _selectedDropoff!,
+                      pickupLocation: _selectedPickup!,
+                      dropoffLocation: _selectedDropoff!,
                       ridemates: _foundRidemates,
                     ),
                   ),
@@ -277,7 +267,7 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
               ),
               child: Text(
-                'Start Ride 🛺',
+                'Join Chat Room 💬',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -399,18 +389,8 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
       ),
     );
   }
-            'gender': 'Male',
-          });
-        });
-        _radialController.stop();
-        _pulseController.stop();
-        _isSearching = false;
-        
-        // Show chat room option for AUTO pooling
-        _showChatRoomDialog();
-      }
-    });
-  }
+
+  void _showChatRoomDialog() {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
@@ -450,14 +430,11 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
         _radialController.stop();
         _pulseController.stop();
         _isSearching = false;
-        
-        // Show chat room option
-        _showChatRoomDialog();
       }
     });
   }
 
-  void _showChatRoomDialog() {
+  void _showChatRoomDialogOld() {
     showDialog(
       context: context,
       builder: (context) => FadeInUp(
@@ -608,50 +585,100 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
                     ),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _selectedPickup,
-                    decoration: InputDecoration(
-                      labelText: 'Pickup Location',
-                      prefixIcon: const Icon(Icons.my_location, color: Colors.green),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedPickup,
+                          decoration: InputDecoration(
+                            labelText: 'Pickup Location',
+                            prefixIcon: const Icon(Icons.my_location, color: Colors.green),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          items: _vesitLocations.map((location) {
+                            return DropdownMenuItem(
+                              value: location,
+                              child: Text(location),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() => _selectedPickup = value);
+                          },
+                        ),
                       ),
-                    ),
-                    items: _vesitLocations.map((location) {
-                      return DropdownMenuItem(
-                        value: location,
-                        child: Text(location),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() => _selectedPickup = value);
-                    },
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PickupLocationMapScreen(),
+                            ),
+                          );
+                          if (result != null) {
+                            setState(() => _selectedPickup = result);
+                          }
+                        },
+                        icon: const Icon(Icons.map, color: Colors.green),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.green.withOpacity(0.1),
+                          padding: const EdgeInsets.all(12),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: _selectedDropoff,
-                    decoration: InputDecoration(
-                      labelText: 'Drop-off Location',
-                      prefixIcon: const Icon(Icons.location_on, color: Colors.orange),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
+                  Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedDropoff,
+                          decoration: InputDecoration(
+                            labelText: 'Drop-off Location',
+                            prefixIcon: const Icon(Icons.location_on, color: Colors.orange),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          items: _vesitLocations.map((location) {
+                            return DropdownMenuItem(
+                              value: location,
+                              child: Text(location),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() => _selectedDropoff = value);
+                          },
+                        ),
                       ),
-                    ),
-                    items: _vesitLocations.map((location) {
-                      return DropdownMenuItem(
-                        value: location,
-                        child: Text(location),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() => _selectedDropoff = value);
-                    },
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const DropoffLocationMapScreen(),
+                            ),
+                          );
+                          if (result != null) {
+                            setState(() => _selectedDropoff = result);
+                          }
+                        },
+                        icon: const Icon(Icons.map, color: Colors.orange),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.orange.withOpacity(0.1),
+                          padding: const EdgeInsets.all(12),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1106,17 +1133,7 @@ class _RideMateSearchScreenState extends State<RideMateSearchScreen>
                                         '${mate['rating']}',
                                         style: const TextStyle(fontSize: 13),
                                       ),
-                                      const SizedBox(width: 12),
-                                      const Icon(Icons.location_on, 
-                                          color: Colors.grey, size: 16),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        mate['distance'],
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
+
                                     ],
                                   ),
                                 ],

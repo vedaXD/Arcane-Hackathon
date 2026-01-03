@@ -8,6 +8,8 @@ class ActiveRideScreen extends StatefulWidget {
   final String mode; // 'auto' or 'carpooling'
   final String pickup;
   final String dropoff;
+  final String pickupLocation;
+  final String dropoffLocation;
   final List<Map<String, dynamic>> ridemates;
 
   const ActiveRideScreen({
@@ -15,6 +17,8 @@ class ActiveRideScreen extends StatefulWidget {
     required this.mode,
     required this.pickup,
     required this.dropoff,
+    required this.pickupLocation,
+    required this.dropoffLocation,
     required this.ridemates,
   }) : super(key: key);
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../theme/app_theme.dart';
 import '../rides/post_ride_feedback_screen.dart';
 
 class RidePaymentScreen extends StatefulWidget {
@@ -33,7 +34,7 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
@@ -111,11 +112,9 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.purple.shade50, Colors.blue.shade50],
-                    ),
+                    color: AppTheme.ecoGreen.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.purple.shade200),
+                    border: Border.all(color: AppTheme.ecoGreen.withOpacity(0.3)),
                   ),
                   child: Column(
                     children: [
@@ -308,7 +307,6 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                 tabs: const [
                   Tab(icon: Icon(Icons.account_balance_wallet), text: 'Wallet'),
                   Tab(icon: Icon(Icons.qr_code), text: 'QR Code'),
-                  Tab(icon: Icon(Icons.person), text: 'Profile'),
                 ],
               ),
             ),
@@ -321,7 +319,6 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
               children: [
                 _buildWalletView(),
                 _buildQRView(),
-                _buildProfileView(),
               ],
             ),
           ),
@@ -351,12 +348,12 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.purple.shade400, Colors.blue.shade400],
+                  colors: [Colors.orange.shade400, Colors.green.shade400],
                 ),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.purple.withOpacity(0.3),
+                    color: Colors.orange.withOpacity(0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -438,19 +435,19 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: Colors.orange.shade50,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.blue.shade700),
+                  Icon(Icons.info_outline, color: Colors.orange.shade700),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Instant payment + earn Carbon Crystals immediately!',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.blue.shade700,
+                        color: Colors.orange.shade700,
                       ),
                     ),
                   ),
@@ -580,7 +577,7 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
   }
 
   Widget _buildProfileView() {
-    final driver = widget.rideDetails['driver'] ?? {
+    final driver = {
       'name': 'Rajesh Kumar',
       'rating': 4.8,
       'trips': 234,
@@ -621,7 +618,7 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                     radius: 50,
                     backgroundColor: Colors.green.shade100,
                     child: Text(
-                      driver['avatar'],
+                      driver['avatar'] as String,
                       style: TextStyle(
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
@@ -631,7 +628,7 @@ class _RidePaymentScreenState extends State<RidePaymentScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    driver['name'],
+                    driver['name'] as String,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,

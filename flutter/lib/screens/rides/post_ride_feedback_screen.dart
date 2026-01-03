@@ -4,10 +4,16 @@ import '../../theme/app_theme.dart';
 
 class PostRideFeedbackScreen extends StatefulWidget {
   final List<Map<String, dynamic>> ridemates;
+  final String mode;
+  final String pickupLocation;
+  final String dropoffLocation;
 
   const PostRideFeedbackScreen({
     Key? key,
     required this.ridemates,
+    required this.mode,
+    required this.pickupLocation,
+    required this.dropoffLocation,
   }) : super(key: key);
 
   @override

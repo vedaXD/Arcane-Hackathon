@@ -22,6 +22,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _upiIdController = TextEditingController();
   final _authService = AuthService();
   String _selectedGender = 'male';
+  String? _faceImagePath;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -58,6 +59,17 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
 
   Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
+      // Check face verification
+      if (_faceImagePath == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Please capture your face photo for verification'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      
       setState(() => _isLoading = true);
       
       // Detect organization from email domain
@@ -399,6 +411,87 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                             ),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Face Verification (Required)
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _faceImagePath != null ? Colors.green : Colors.orange),
+                      borderRadius: BorderRadius.circular(12),
+                      color: _faceImagePath != null ? Colors.green.shade50 : Colors.orange.shade50,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              _faceImagePath != null ? Icons.check_circle : Icons.face_retouching_natural,
+                              color: _faceImagePath != null ? Colors.green : Colors.orange,
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Face Verification',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    _faceImagePath != null 
+                                        ? 'Photo captured ✓' 
+                                        : 'Required for account security',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: _faceImagePath != null ? Colors.green.shade700 : Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            // Mock face capture
+                            setState(() {
+                              _faceImagePath = 'mock_face_${DateTime.now().millisecondsSinceEpoch}.jpg';
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Face captured successfully! ✓'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          },
+                          icon: Icon(_faceImagePath != null ? Icons.refresh : Icons.camera_alt),
+                          label: Text(_faceImagePath != null ? 'Retake Photo' : 'Capture Face Photo'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _faceImagePath != null ? Colors.green : AppTheme.primaryOrange,
+                            minimumSize: Size(double.infinity, 44),
+                          ),
+                        ),
+                        if (_faceImagePath == null) ...[
+                          SizedBox(height: 8),
+                          Text(
+                            '⚠️ Face verification is required to continue',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.red.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
