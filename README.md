@@ -4,10 +4,13 @@
 [![Django](https://img.shields.io/badge/Django-4.2+-092E20?logo=django)](https://www.djangoproject.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue)]()
+[![Telegram Bot](https://img.shields.io/badge/Telegram-@RouteOpt__bot-26A5E4?logo=telegram)](https://t.me/RouteOpt_bot)
 
 > **Reducing carbon emissions, one shared ride at a time.**
 
 A comprehensive Flutter-based mobile application with Django backend designed to promote sustainability by reducing carbon emissions through organization-based car pooling and ride-mate matching. Built with safety, trust, community pooling, and real-time environmental impact tracking at its core.
+
+**🤖 Try it now on Telegram:** [@RouteOpt_bot](https://t.me/RouteOpt_bot) - No app installation needed!
 
 ---
 
@@ -162,7 +165,12 @@ Earn diamonds based on actual CO₂ saved, creating a tangible incentive system:
 - Trust score calculation and display
 
 ### 📱 Bot Integration & Notifications
-- **Telegram Bot** for ride notifications and quick actions
+- **Telegram Bot (@RouteOpt_bot):**
+  - AI-powered natural language understanding
+  - Search and offer rides via Telegram
+  - Check rewards and CO₂ savings
+  - Receive instant notifications
+  - No app installation required
 - Push notifications for ride updates
 - Real-time chat message notifications
 - SOS alerts to admins
@@ -241,6 +249,8 @@ Arcane-Hackathon/
 ## ⚡ Quick Start Guide
 
 ### For Users
+
+#### Option 1: Mobile App (Full Experience)
 1. **Download & Install** the EcoPool mobile app
 2. **Register** with your organization email (e.g., name@company.com)
 3. **Complete Facial Verification** for security
@@ -249,6 +259,18 @@ Arcane-Hackathon/
    - Need a ride? Select "Seeking Ride" for any transport mode
 5. **Create or Search Trips** based on your daily commute
 6. **Start Pooling** and earn diamonds for every CO₂ saved!
+
+#### Option 2: Telegram Bot (Quick Access) 🤖
+1. **Open Telegram** and search for `@RouteOpt_bot`
+2. **Click Start** and login with your organization email
+3. **Use commands** or just chat naturally:
+   - "Find me a ride to Whitefield tomorrow"
+   - "/search" - Search available rides
+   - "/rewards" - Check your diamonds
+   - "/carbon" - View CO₂ savings
+4. **Get instant notifications** for rides, matches, and rewards!
+
+*The bot is perfect for quick actions while the mobile app offers full features like live GPS tracking.*
 
 ### For Developers
 ```bash
@@ -618,7 +640,53 @@ flutter run
 flutter run -d <device-id>
 ```
 
-### Telegram Bot Setup (Optional)
+### Telegram Bot Setup & Usage
+
+#### 🤖 Bot Username: **@RouteOpt_bot**
+
+#### For Users (No Setup Required!)
+
+**How to Use the Telegram Bot:**
+
+1. **Find the Bot**
+   - Open Telegram
+   - Search for `@RouteOpt_bot`
+   - Click "Start" or send `/start`
+
+2. **Login & Connect**
+   ```
+   /start - Start bot and authenticate with your EcoPool account
+   ```
+   - Bot will ask for your email and password
+   - Once logged in, you're ready to use all features!
+
+3. **Available Commands**
+   ```
+   /search - Search for available carpools near you
+   /offer - Offer your ride to colleagues
+   /mycarpools - View your active and past rides
+   /rewards - Check your diamond balance
+   /carbon - View your CO₂ savings and environmental impact
+   /help - Show all available commands
+   /logout - Logout from the bot
+   ```
+
+4. **Natural Language Support**
+   - You don't need to use commands!
+   - Just chat naturally:
+     - "I need a ride to VESIT tomorrow morning"
+     - "Show me my rewards"
+     - "How much CO₂ have I saved?"
+     - "Find carpools going to Whitefield"
+   
+5. **Get Notifications**
+   - Ride match found
+   - Ride starting soon
+   - New message in chat room
+   - Payment received
+   - Rewards earned
+
+#### For Developers (Bot Setup)
 
 1. **Navigate to telegram-bot directory**
 ```bash
@@ -631,12 +699,31 @@ pip install -r requirements.txt
 ```
 
 3. **Configure bot token**
-Edit `config.py` with your Telegram bot token
+Edit `config.py` with your Telegram bot token from @BotFather
 
-4. **Start bot**
+4. **Set environment variables**
+```bash
+# Windows PowerShell
+$env:TELEGRAM_BOT_TOKEN="your_token_here"
+$env:API_BASE_URL="http://localhost:8000/api"
+
+# Linux/Mac
+export TELEGRAM_BOT_TOKEN="your_token_here"
+export API_BASE_URL="http://localhost:8000/api"
+```
+
+5. **Start bot**
 ```bash
 python bot.py
 ```
+
+The bot uses **GPT-4 powered agentic AI** that:
+- Understands natural language intent
+- Makes autonomous decisions
+- Performs multi-step actions
+- Self-corrects when errors occur
+
+See [telegram-bot/README.md](telegram-bot/README.md) for detailed technical documentation.
 
 ---
 
@@ -956,6 +1043,7 @@ We welcome contributions to make EcoPool even better! Here's how you can help:
 - [x] Multi-payment options (Diamonds/Cash/UPI)
 - [x] SOS feature with admin alerts
 - [x] Sustainability metrics and CO₂ tracking
+- [x] Telegram bot integration (@RouteOpt_bot) with AI agent
 
 ### Phase 2 (Current)
 - [ ] Advanced AI-powered route optimization
@@ -1049,6 +1137,19 @@ A: Organization admins receive immediate alerts with your live GPS location and 
 **Q: How long is chat history retained?**  
 A: Chat rooms auto-delete after 24 hours to protect your privacy.
 
+### Telegram Bot
+**Q: How do I use the Telegram bot?**  
+A: Search for `@RouteOpt_bot` on Telegram, click Start, and login with your EcoPool credentials. You can then use commands like `/search` or just chat naturally.
+
+**Q: What can the Telegram bot do?**  
+A: Search rides, offer rides, check rewards, view CO₂ savings, and receive notifications. It uses AI to understand natural language, so you can chat like you would with a person.
+
+**Q: Do I need to download the mobile app to use the bot?**  
+A: No! The Telegram bot provides core features without the app. However, the mobile app offers the complete experience with live tracking and advanced features.
+
+**Q: Can I get ride notifications on Telegram?**  
+A: Yes! Once logged in to @RouteOpt_bot, you'll receive notifications for ride matches, messages, payments, and rewards.
+
 ---
 
 ## 👏 Acknowledgments
@@ -1071,6 +1172,12 @@ Special thanks to all contributors who believe in a greener future! 🌱
 - **Team Lead:** [@vedaXD](https://github.com/vedaXD)
 - **Email:** support@ecopool.com
 - **Issues:** [GitHub Issues](https://github.com/vedaXD/Arcane-Hackathon/issues)
+- **Telegram Bot:** [@RouteOpt_bot](https://t.me/RouteOpt_bot) - Try it now!
+
+### Quick Access
+- 🤖 **Use the bot:** Open Telegram → Search `@RouteOpt_bot` → Start chatting!
+- 📱 **Mobile App:** Download from releases
+- 🌐 **Web:** Coming soon
 
 ### Documentation
 - 📖 [Complete Features Guide](COMPLETE_FEATURES_GUIDE.md) - Detailed implementation guide
