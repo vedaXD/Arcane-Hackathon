@@ -36,9 +36,9 @@ A comprehensive Flutter-based mobile application with Django backend designed to
 
 ## 👥 Team Information
 
-**Team Name:** Arcane Hackathon Team
+**Team Name:** Kapow
 
-**Domain:** Sustainability & Green Technology
+**Domain:** Sustainability
 
 **Team Members:**
 - Veda Patki
