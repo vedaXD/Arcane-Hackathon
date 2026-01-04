@@ -16,6 +16,12 @@
 
 **Experience EcoPool directly in your browser - no installation required!**
 
+### 🎥 **[Watch Demo Video on YouTube →](https://youtu.be/g-GMM4rRC1A)**
+
+**See EcoPool in action - Full feature walkthrough**
+
+---
+
 🤖 **Or use Telegram:** [@RouteOpt_bot](https://t.me/RouteOpt_bot) - AI-powered carpooling assistant
 
 </div>
