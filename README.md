@@ -1,4 +1,4 @@
-# 🌱 EcoPool - Sustainable Organization Car Pooling Platform
+# 🌱 RouteOpt - Sustainable Organization Car Pooling Platform
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.0+-02569B?logo=flutter)](https://flutter.dev)
 [![Django](https://img.shields.io/badge/Django-4.2+-092E20?logo=django)](https://www.djangoproject.com/)
@@ -14,11 +14,11 @@
 
 ### 📱 **[Try the App Live on Appetize →](https://appetize.io/app/b_4ura6dlmgfd5oppvfhxm6twe5e)**
 
-**Experience EcoPool directly in your browser - no installation required!**
+**Experience RouteOpt directly in your browser - no installation required!**
 
 ### 🎥 **[Watch Demo Video on YouTube →](https://youtu.be/g-GMM4rRC1A)**
 
-**See EcoPool in action - Full feature walkthrough**
+**See RouteOpt in action - Full feature walkthrough**
 
 ---
 
@@ -84,7 +84,7 @@ Transportation is one of the largest contributors to carbon emissions globally. 
 ## 💡 Key Innovations
 
 ### 1. **Community Pooling Without Cars** 🚗➡️🛺
-Unlike traditional carpooling apps that require vehicle ownership, EcoPool enables ride-seeking mode where users can find ride-mates for auto-rickshaws, public transport, or any shared mode. This democratizes sustainable commuting.
+Unlike traditional carpooling apps that require vehicle ownership, RouteOpt enables ride-seeking mode where users can find ride-mates for auto-rickshaws, public transport, or any shared mode. This democratizes sustainable commuting.
 
 ### 2. **Organization Preset Routes with Reverse** 🏢🔄
 Organizations create common routes (e.g., "Koramangala → Office"). Users can:
@@ -199,7 +199,7 @@ Earn diamonds based on actual CO₂ saved, creating a tangible incentive system:
 
 ## 🆚 Feature Comparison
 
-| Feature | Traditional Carpooling | EcoPool |
+| Feature | Traditional Carpooling | RouteOpt |
 |---------|----------------------|---------|
 | **Vehicle Requirement** | Must own a car | ❌ Optional - Seek rides without vehicle |
 | **Organization Focus** | Open to everyone | ✅ Organization-based for trust |
@@ -271,7 +271,7 @@ Arcane-Hackathon/
 ### For Users
 
 #### Option 1: Mobile App (Full Experience)
-1. **Download & Install** the EcoPool mobile app
+1. **Download & Install** the RouteOpt mobile app
 2. **Register** with your organization email (e.g., name@company.com)
 3. **Complete Facial Verification** for security
 4. **Choose Mode:**
@@ -675,7 +675,7 @@ flutter run -d <device-id>
 
 2. **Login & Connect**
    ```
-   /start - Start bot and authenticate with your EcoPool account
+   /start - Start bot and authenticate with your RouteOpt account
    ```
    - Bot will ask for your email and password
    - Once logged in, you're ready to use all features!
@@ -754,7 +754,7 @@ See [telegram-bot/README.md](telegram-bot/README.md) for detailed technical docu
 **Option 1: Heroku**
 ```bash
 # Install Heroku CLI
-heroku create ecopool-backend
+heroku create routeopt-backend
 heroku addons:create heroku-postgresql:hobby-dev
 git push heroku main
 heroku run python manage.py migrate
@@ -800,7 +800,7 @@ flutter build ios --release
 **Update API endpoint in production:**
 ```dart
 // lib/services/api_client.dart
-static const String baseUrl = 'https://api.ecopool.com/api';
+static const String baseUrl = 'https://api.routeopt.com/api';
 ```
 
 ---
@@ -994,7 +994,7 @@ Users can track:
 
 ## 🤝 Contributing
 
-We welcome contributions to make EcoPool even better! Here's how you can help:
+We welcome contributions to make RouteOpt even better! Here's how you can help:
 
 ### How to Contribute
 
@@ -1121,7 +1121,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## ❓ Frequently Asked Questions
 
 ### General
-**Q: Do I need a car to use EcoPool?**  
+**Q: Do I need a car to use RouteOpt?**  
 A: No! With our "Seeking Ride" feature, you can find ride-mates for auto-rickshaws, public transport, or any shared mode.
 
 **Q: Can I only match with people from my organization?**  
@@ -1159,7 +1159,7 @@ A: Chat rooms auto-delete after 24 hours to protect your privacy.
 
 ### Telegram Bot
 **Q: How do I use the Telegram bot?**  
-A: Search for `@RouteOpt_bot` on Telegram, click Start, and login with your EcoPool credentials. You can then use commands like `/search` or just chat naturally.
+A: Search for `@RouteOpt_bot` on Telegram, click Start, and login with your RouteOpt credentials. You can then use commands like `/search` or just chat naturally.
 
 **Q: What can the Telegram bot do?**  
 A: Search rides, offer rides, check rewards, view CO₂ savings, and receive notifications. It uses AI to understand natural language, so you can chat like you would with a person.
@@ -1190,7 +1190,7 @@ Special thanks to all contributors who believe in a greener future! 🌱
 
 - **GitHub Repository:** [Arcane-Hackathon](https://github.com/vedaXD/Arcane-Hackathon)
 - **Team Lead:** [@vedaXD](https://github.com/vedaXD)
-- **Email:** support@ecopool.com
+- **Email:** support@routeopt.com
 - **Issues:** [GitHub Issues](https://github.com/vedaXD/Arcane-Hackathon/issues)
 - **Telegram Bot:** [@RouteOpt_bot](https://t.me/RouteOpt_bot) - Try it now!
 
@@ -1214,6 +1214,6 @@ Special thanks to all contributors who believe in a greener future! 🌱
 
 *Every ride shared is a step towards cleaner air and a healthier planet.*
 
-**EcoPool** - Connecting people, reducing emissions, building communities.
+**RouteOpt** - Connecting people, reducing emissions, building communities.
 
 </div>
