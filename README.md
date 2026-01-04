@@ -8,9 +8,23 @@
 
 > **Reducing carbon emissions, one shared ride at a time.**
 
-A comprehensive Flutter-based mobile application with Django backend designed to promote sustainability by reducing carbon emissions through organization-based car pooling and ride-mate matching. Built with safety, trust, community pooling, and real-time environmental impact tracking at its core.
+## 🚀 Live Demo
 
-**🤖 Try it now on Telegram:** [@RouteOpt_bot](https://t.me/RouteOpt_bot) - No app installation needed!
+<div align="center">
+
+### 📱 **[Try the App Live on Appetize →](https://appetize.io/app/b_4ura6dlmgfd5oppvfhxm6twe5e)**
+
+**Experience EcoPool directly in your browser - no installation required!**
+
+🤖 **Or use Telegram:** [@RouteOpt_bot](https://t.me/RouteOpt_bot) - AI-powered carpooling assistant
+
+</div>
+
+---
+
+## 📖 About
+
+A comprehensive Flutter-based mobile application with Django backend designed to promote sustainability by reducing carbon emissions through organization-based car pooling and ride-mate matching. Built with safety, trust, community pooling, and real-time environmental impact tracking at its core.
 
 ---
 
